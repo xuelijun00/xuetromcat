@@ -1,0 +1,194 @@
+package com.yks.bigdata.service.channel;
+
+import com.github.pagehelper.PageHelper;
+import com.yks.bigdata.dao.SystemExceptionMapper;
+import com.yks.bigdata.dao.TrackSaiChengInfoMapper;
+import com.yks.bigdata.dto.system.SystemException;
+import com.yks.bigdata.dto.trackmore.RequestTask;
+import com.yks.bigdata.dto.trackmore.TrackSaiChengInfo;
+import com.yks.bigdata.service.trackmore.impl.RequestTaskServiceImpl;
+import com.yks.bigdata.util.HttpRequestUtils;
+import com.yks.bigdata.util.ResponseData;
+import org.apache.commons.lang3.time.DateFormatUtils;
+import org.dom4j.Document;
+import org.dom4j.DocumentHelper;
+import org.dom4j.Element;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
+
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
+/**
+ * Created by liuxing on 2017/10/22.
+ * 对接赛诚物流渠道
+ */
+@Service
+public class ChannelSaichengService {
+
+    //userId=YKS or userId=YKSEP
+    private static final String URL = "http://114.80.227.2:8080/api/track/TrackEvents?tracktype=2&userId=YKS&findNumber=%s";
+
+    @Autowired
+    SystemExceptionMapper systemExceptionMapper;
+
+    @Autowired
+    RequestTaskServiceImpl requestTaskService;
+
+    @Autowired
+    TrackSaiChengInfoMapper trackSaiChengInfoMapper;
+
+    private static final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss+10:00");
+    private static final SimpleDateFormat simpleDateFormat1 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+    @Value("${fetch.thread.size}")
+    private int threadSize;//线程池大小
+
+    public void querySaicheng(){
+        ExecutorService executorService = Executors.newFixedThreadPool(threadSize);
+        Future<Object> submit = null;
+        systemExceptionMapper.insert(new SystemException("trackmore fetch saicheng data begin", DateFormatUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss")));
+        RequestTask requestTask = new RequestTask();
+        requestTask.setChannel("'赛诚中澳专线挂号','赛诚中澳专线平邮'");
+        Integer integer = requestTaskService.selectRequestTasksCount(requestTask);
+        int count = integer%10==0?integer/10:integer/10 + 1;
+        for(int i=1;i<=count;i++){
+            PageHelper.startPage(i, 10, false);
+            List<RequestTask> queryTasks = requestTaskService.selectRequestTasks(requestTask);
+            if(CollectionUtils.isEmpty(queryTasks)){
+                continue;
+            }
+            StringBuffer stringBuffer = new StringBuffer();
+            for (RequestTask task:queryTasks) {
+                stringBuffer.append(task.getTrackingNumber()).append(",");
+            }
+            final String url = String.format(URL,stringBuffer.deleteCharAt(stringBuffer.length() - 1));
+            sendRequestQuerySaichengApi(url);
+            /*submit = executorService.submit(new Callable<Object>() {
+                @Override
+                public Object call() throws Exception {
+                    sendRequestQuerySaichengApi(url);
+                    return null;
+                }
+            });*/
+        }
+        try{submit.get();}catch (Exception ex){}
+        executorService.shutdownNow();
+        systemExceptionMapper.insert(new SystemException("trackmore fetch saicheng data end", DateFormatUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss")));
+    }
+
+    public void sendRequestQuerySaichengApi(String url){
+        try {
+            ResponseData responseData = HttpRequestUtils.sendHttpGet(url);
+            Map<String, List<TrackSaiChengInfo>> stringListMap = this.parseXml(responseData.getResponseText());
+            for (Map.Entry<String, List<TrackSaiChengInfo>> entries:stringListMap.entrySet()) {
+                saveYTData(entries.getKey(), entries.getValue());
+            }
+        }catch (Exception ex){
+            StringBuffer sb = new StringBuffer();
+            sb.append(DateFormatUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss")).append("\n");
+            sb.append("url：").append(url).append("\n");
+            sb.append("赛诚接口查询失败:").append(ex.getLocalizedMessage()).append("\n");
+            systemExceptionMapper.insert(new SystemException("赛诚接口解析失败", sb.toString()));
+            ex.printStackTrace();
+        }
+    }
+
+    private Map<String,List<TrackSaiChengInfo>> parseXml(String xml)throws Exception{
+        Map<String,List<TrackSaiChengInfo>> map = new HashMap<>();
+        Document document = DocumentHelper.parseText(xml);
+        Element rootElement = document.getRootElement();
+        Iterator<Element> iterator = rootElement.elementIterator();
+        while (iterator.hasNext()){
+            Element next = iterator.next();
+            if("orders".equals(next.getName())){
+                Iterator<Element> iterator1 = next.elementIterator();
+                while (iterator1.hasNext()){
+                    Element next2 = iterator1.next();
+                    if("order".equals(next2.getName())){
+                        List<TrackSaiChengInfo> saiChengInfos = parseXmlValue(next2);
+                        if(!CollectionUtils.isEmpty(saiChengInfos)){
+                            map.put(saiChengInfos.get(0).getTrackingNumber(), parseXmlValue(next2));
+                        }
+                    }
+                }
+            }
+        }
+        return map;
+    }
+
+    private List<TrackSaiChengInfo> parseXmlValue(Element element){
+        List<TrackSaiChengInfo> saiChengInfos = new ArrayList<>();
+        Iterator<Element> iterator = element.elementIterator();
+        String orderNo = "";
+        String trackingNumber = "";
+        String status = "";
+        String productType = "";
+        while (iterator.hasNext()){
+            Element next = iterator.next();
+            if(next.isTextOnly() && "orderNo".equals(next.getName())){
+                orderNo = next.getText();
+            }else if(next.isTextOnly() && "trackingNumber".equals(next.getName())){
+                trackingNumber = next.getText();
+            }else if(next.isTextOnly() && "status".equals(next.getName())){
+                status = next.getText();
+            }else if(next.isTextOnly() && "productType".equals(next.getName())){
+                productType = next.getText();
+            }else if("events".equals(next.getName())){
+                Iterator<Element> iterator1 = next.elementIterator();
+                while (iterator1.hasNext()){
+                    Element next1 = iterator1.next();
+                    if("event".equals(next1.getName())){
+                        Iterator<Element> iterator2 = next1.elementIterator();
+                        TrackSaiChengInfo trackSaiChengInfo = new TrackSaiChengInfo();
+                        trackSaiChengInfo.setCreateTime(new Date());
+                        trackSaiChengInfo.setOrderno(orderNo);
+                        trackSaiChengInfo.setTrackingNumber(trackingNumber);
+                        trackSaiChengInfo.setStatus(status);
+                        trackSaiChengInfo.setProductType(productType);
+                        while (iterator2.hasNext()){
+                            Element next2 = iterator2.next();
+                            if(next2.isTextOnly() && "date".equals(next2.getName())){
+                                Date date = null;
+                                try{date = simpleDateFormat.parse(next2.getText());}catch (Exception ex){
+                                    try{date = simpleDateFormat1.parse(next2.getText());}catch (Exception ex1){}
+                                }
+                                trackSaiChengInfo.setDate(date);
+                            }else if(next2.isTextOnly() && "description".equals(next2.getName())){
+                                trackSaiChengInfo.setDescription(next2.getText());
+                            }else if(next2.isTextOnly() && "location".equals(next2.getName())){
+                                trackSaiChengInfo.setLocation(next2.getText());
+                            }
+                        }
+                        saiChengInfos.add(trackSaiChengInfo);
+                    }
+                }
+            }
+        }
+        return saiChengInfos;
+    }
+
+    /**
+     * 保存数据
+     * @param trackCode
+     * @param list
+     */
+    @Transactional(value = "transactionManager")
+    public void saveYTData(String trackCode, List<TrackSaiChengInfo> list){
+        if(CollectionUtils.isEmpty(list)){
+            return;
+        }
+        trackSaiChengInfoMapper.deleteByTrackNum(trackCode);
+        trackSaiChengInfoMapper.addBatch(list);
+    }
+
+
+
+}

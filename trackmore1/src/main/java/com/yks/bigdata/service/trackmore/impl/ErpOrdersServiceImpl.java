@@ -1,0 +1,424 @@
+package com.yks.bigdata.service.trackmore.impl;
+
+import com.yks.bigdata.common.ExceptionEnum;
+import com.yks.bigdata.dao.Erp_ordersMapper;
+import com.yks.bigdata.dao.SystemExceptionMapper;
+import com.yks.bigdata.dto.system.SystemException;
+import com.yks.bigdata.dto.trackmore.ErpOrders;
+import com.yks.bigdata.dto.trackmore.LogisticReport;
+import com.yks.bigdata.service.trackmore.IErpOrdersService;
+import com.yks.bigdata.service.trackmore.IRequestTaskService;
+import com.yks.bigdata.util.JdbcUtils;
+import com.yks.bigdata.vo.CountBean;
+import com.yks.bigdata.vo.Orders;
+import org.apache.commons.dbutils.QueryRunner;
+import org.apache.commons.dbutils.handlers.BeanListHandler;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Created by zh on 2017/6/30.
+ */
+@Service
+public class ErpOrdersServiceImpl implements IErpOrdersService {
+
+    private static Logger log = LoggerFactory.getLogger(ErpOrdersServiceImpl.class);
+
+    @Autowired
+    Erp_ordersMapper erp_ordersMapper;
+
+    @Autowired
+    YksAccountServiceImpl yksAccountService;
+
+    @Autowired
+    private SystemExceptionMapper systemExceptionMapper;
+
+    @Autowired
+    IRequestTaskService requestTaskService;
+
+    private static final String HASIMPORTSQL = "select count(1) su from erp_orders where tracked =0 and orders_export_time > '2017-08-14' and orders_export_time < DATE_FORMAT(DATE_ADD(NOW(),INTERVAL -2 day),'%Y-%m-%d') and erp_post_office != 0 and erp_post_office != 4 ";
+    /**
+     *erp_post_office 发货方式 0 - 海外仓  4 - 快递  这个两个不需要
+     * tracked = 0 表示是否获取过数据
+     * 不查这个orders_status = 5  已发货订单
+     * orders_export_time > DATE_FORMAT(DATE_ADD(NOW(),INTERVAL -2 MONTH),'%Y-%m-%d') 查询近两个月得数据
+     *
+     */
+    private static final String IMPORTERPDATASQL10W = "select * from (select a.erp_orders_id,a.warehouseid,a.buyer_city,a.buyer_state,a.buyer_country,a.shipping_method,a.sales_account,a.orders_type,a.orders_status,a.orders_export_time,a.fee,a.heavi,a.size,a.orders_out_time,case WHEN orders_mail_code is not null and LENGTH(TRIM(orders_mail_code))> 0 THEN orders_mail_code ELSE orders_shipping_code END as orders_mail_code ,a.orders_mail_time,a.erp_post_office,a.orders_print_time,a.ebay_counycode,a.freightcode,a.yksid,b.ship_name as channel_name from erp_orders a INNER JOIN erp_ship b on a.erp_post_office = b.typeid where tracked =0 and erp_post_office != 0 and erp_post_office != 4 and orders_export_time > '2017-08-10' and orders_export_time <= DATE_FORMAT(DATE_ADD(NOW(),INTERVAL -2 day),'%Y-%m-%d')) a where orders_mail_code is not NULL\n limit 100000";
+    //" and a.erp_post_office = 1103 "+
+    /**
+     * 1、将数据从老erp中导入到trace more中的erp_orders表中
+     * 2、生成request task
+     */
+    public void importErpOrders() throws Exception {
+        Long aLong = hasNextErpOrders();
+        int size = aLong % 100000 == 0?(int)(aLong / 100000):(int)(aLong / 100000) + 1;
+        int i = 0;
+        do{
+            //从老erp中拉取数据10W条
+            List<Orders> orderses = queryResult();
+            if (orderses.size() > 0) {
+                //保存这10W条
+                List<ErpOrders> erpOrders = convert2ErpOrders(orderses);
+                log.info("erp_orders size ---------------------------------" + erpOrders.size());
+                try {
+                    saveOrders(erpOrders);
+                    systemExceptionMapper.insert(new SystemException(ExceptionEnum.ERP_ORDER_SAVE_SUCCESS.name(),ExceptionEnum.ERP_ORDER_SAVE_SUCCESS.getMessage()));
+                    log.info("batch insert erporders数据 ");
+                }catch (Exception ex){
+                    ex.printStackTrace();
+                    log.error(ex.getLocalizedMessage());
+                    systemExceptionMapper.insert(new SystemException(ExceptionEnum.ERP_ORDER_SAVE_ERROR.name(),ex.getLocalizedMessage()));
+                    throw new Exception("插入erp_orders数据失败");
+                }
+
+                //修改老erp中的这10W数据进行修改状态为1,已录入
+                try {
+                    updateErpOrdersStatus(orderses);
+                    systemExceptionMapper.insert(new SystemException(ExceptionEnum.ERP_ORDER_UPDATE_TRACKED_SUCCESS.name(),ExceptionEnum.ERP_ORDER_UPDATE_TRACKED_SUCCESS.getMessage()));
+                    log.info("batch update erporders数据 ");
+                }catch (Exception ex){
+                    ex.printStackTrace();
+                    log.error(ex.getLocalizedMessage());
+                    systemExceptionMapper.insert(new SystemException(ExceptionEnum.ERP_ORDER_UPDATE_TRACKED_ERROR.name(),ex.getLocalizedMessage()));
+                }
+
+                //生成request task
+                /*try{
+                    requestTaskService.generateRequestTask(erpOrders);
+                    systemExceptionMapper.insert(new SystemException(ExceptionEnum.GENERATE_REQUEST_TASK_SUCCESS.name(),ExceptionEnum.GENERATE_REQUEST_TASK_SUCCESS.getMessage()));
+                    log.info("生成request task数据 ");
+                }catch (Exception ex){
+                    systemExceptionMapper.insert(new SystemException(ExceptionEnum.GENERATE_REQUEST_TASK_FAILURE.name(),ExceptionEnum.GENERATE_REQUEST_TASK_FAILURE.getMessage()));
+                    log.error(ex.getLocalizedMessage());
+                }*/
+
+            }
+            i++;
+        }while (i < size);
+    }
+
+    @Override
+    public void updateTrackmoreStatus(ErpOrders orders) {
+        ErpOrders orders1 = new ErpOrders();
+        orders1.setErpOrdersId(orders.getErpOrdersId());
+        orders1.setTrackStatus(orders.getTrackStatus());
+        erp_ordersMapper.updateByPrimaryKeySelective(orders1);
+    }
+
+    @Override
+    public List<String> selectbuyerCountry() {
+        return erp_ordersMapper.selectbuyerCountry();
+    }
+
+
+    /**
+     * 查看是否还有数据
+     *
+     * @return
+     */
+    private Long hasNextErpOrders() throws SQLException {
+        QueryRunner queryRunner = new QueryRunner();
+        Connection connection = JdbcUtils.getConnection();
+        List<CountBean> beanList = (List<CountBean>) queryRunner.query(connection, HASIMPORTSQL, new BeanListHandler(CountBean.class));
+        JdbcUtils.destoryConnection(connection);
+        return beanList.get(0).getSu();
+    }
+
+    @Override
+    public List<ErpOrders> existsOrders(String ids) {
+        List<Long> orderses = new ArrayList<Long>();
+        String idsArray[] = ids.split(",");
+        for (String id : idsArray) {
+            orderses.add(Long.parseLong(id));
+        }
+        return erp_ordersMapper.existsOrders(orderses);
+    }
+
+    /**
+     * 根据erpOrderId查询订单
+     * @param erpOrderId
+     * @return
+     */
+    @Override
+    public ErpOrders selectOrderByOrderId(Long erpOrderId) {
+        return erp_ordersMapper.existsOrder(erpOrderId);
+    }
+
+    @Override
+    public List<ErpOrders> selectErpOrders(ErpOrders channel) {
+        return erp_ordersMapper.selectErpOrders(channel);
+    }
+
+
+    private void updateErpOrdersStatus(List<Orders> ordersList) throws SQLException {
+        List<List<Orders>> splits = splitOrders(ordersList);
+        for (List<Orders> orders500List : splits) {
+            updateErpOrdersStatus1(orders500List);
+        }
+        log.info("更新erp_orders tracked 状态" );
+    }
+
+    private List<List<Orders>> splitOrders(List<Orders> list) {
+        if (list == null || list.size() == 0) {
+            return null;
+        }
+        ArrayList<List<Orders>> result = new ArrayList<>();
+        ArrayList<Orders> ordersList = new ArrayList<Orders>();
+        for (int i = 0; i < list.size(); i++) {
+            ordersList.add(list.get(i));
+            //满1000个使用另外一个ordersList
+            if (ordersList.size() == 500) {
+                result.add(ordersList);
+                ordersList = new ArrayList<Orders>();
+            }
+        }
+        if (ordersList.size() != 0) {
+            result.add(ordersList);
+        }
+        return result;
+    }
+
+
+    /**
+     * @param ordersList
+     */
+    private void updateErpOrdersStatus500(List<Orders> ordersList) throws SQLException {
+        QueryRunner runner = new QueryRunner();
+        StringBuilder sb = new StringBuilder();
+        for (Orders order : ordersList) {
+            sb.append(order.getErp_orders_id()).append(",");
+        }
+        String s = sb.toString();
+        String sql = "update erp_orders set tracked=? where erp_orders_id in (" + s.substring(0, s.length() - 1) + ")";
+        Connection connection = JdbcUtils.getConnection();
+        runner.update(connection, sql, 1);
+        JdbcUtils.destoryConnection(connection);
+    }
+    private void updateErpOrdersStatus1(List<Orders> ordersList) throws SQLException {
+        QueryRunner runner = new QueryRunner();
+        String sql = "update erp_orders set tracked=? where erp_orders_id = ?";
+        Connection connection = JdbcUtils.getConnection();
+        for (Orders order:ordersList){
+            runner.update(connection, sql, 1,order.getErp_orders_id());
+        }
+        JdbcUtils.destoryConnection(connection);
+    }
+
+    private List<ErpOrders> convert2ErpOrders(List<Orders> ordersList) {
+        Map<String, String> platform = yksAccountService.getPlatform();//查询平台
+        ArrayList<ErpOrders> list = new ArrayList<>();
+        for (Orders order : ordersList) {
+            ErpOrders erp_orders = new ErpOrders();
+
+            // 检查是否存在订单
+            if(selectOrderByOrderId(order.getErp_orders_id()) != null){
+                continue;
+            }
+
+            erp_orders.setErpOrdersId(order.getErp_orders_id());
+            erp_orders.setWarehouseid(Short.parseShort(order.getWarehouseid().toString()));
+            erp_orders.setBuyerCity(order.getBuyer_city());
+            erp_orders.setBuyerState(order.getBuyer_state());
+            erp_orders.setBuyerCountry(order.getBuyer_country());
+
+            erp_orders.setShippingMethod(order.getShipping_method());
+            erp_orders.setSalesAccount(order.getSales_account());
+            erp_orders.setOrdersType(order.getOrders_type());
+            erp_orders.setOrdersStatus(order.getOrders_status());
+            erp_orders.setOrdersExportTime(new Date(order.getOrders_export_time().getTime()));
+
+            erp_orders.setFee(order.getFee());
+            erp_orders.setHeavi(order.getHeavi());
+            erp_orders.setSize(order.getSize());
+            erp_orders.setOrdersOutTime(order.getOrders_out_time());
+            String trackNumber = "";
+            int status = 0;
+            if (StringUtils.isNotBlank(order.getOrders_mail_code())) {
+                trackNumber = order.getOrders_mail_code();
+            } else if (StringUtils.isNotBlank(order.getOrders_shipping_code())) {
+                trackNumber = order.getOrders_shipping_code();
+            }else{
+                String errorStr = "订单异常:"+order.getErp_orders_id()+"中的mail_code和shipping_code都为null";
+                log.error(errorStr);
+                status = ExceptionEnum.ERP_ORDER_NOT_KEYWORD.getValue();
+            }
+            erp_orders.setOrdersMailCode(trackNumber);
+
+            erp_orders.setOrdersMailTime(order.getOrders_mail_time());
+            erp_orders.setErpPostOffice(order.getErp_post_office());
+            try{
+                erp_orders.setOrdersPrintTime(new Date(order.getOrders_print_time().getTime()));
+            }catch(Exception ex){
+                String errorStr = "打印时间异常：" + erp_orders.getErpOrdersId();
+                log.error(errorStr);
+                status = ExceptionEnum.ERP_ORDER_NOT_KEYWORD.getValue();
+            }
+
+            erp_orders.setEbayCounycode(order.getEbay_counycode());
+            erp_orders.setFreightcode(order.getFreightcode());
+
+            erp_orders.setYksid(order.getYksid());
+            erp_orders.setCreateTime(new Date());
+            erp_orders.setTrackStatus(status);
+            erp_orders.setChannelName(order.getChannel_name());
+
+            String platformStr = platform.get(erp_orders.getSalesAccount());
+            if(StringUtils.isNotEmpty(platformStr)){
+                erp_orders.setPlatform(platformStr);
+            }else{
+                erp_orders.setPlatform("其他");
+            }
+            list.add(erp_orders);
+            //导入是否存在id
+            /*if(erp_ordersMapper.selectByPrimaryKey(erp_orders.getErpOrdersId()) == null){
+
+            }*/
+        }
+        return list;
+    }
+
+    @Transactional(value="transactionManager")
+    private void saveOrders(List<ErpOrders> list) {
+        List<List<ErpOrders>> resultList = splitErpOrders(list);
+        for (List<ErpOrders> batchList : resultList) {
+            erp_ordersMapper.addBatch(batchList);
+        }
+    }
+
+    private List<List<ErpOrders>> splitErpOrders(List<ErpOrders> list){
+        if (list == null || list.size() == 0) {
+            return null;
+        }
+        ArrayList<List<ErpOrders>> result = new ArrayList<>();
+        ArrayList<ErpOrders> ordersList = new ArrayList<ErpOrders>();
+        for (int i = 0; i < list.size(); i++) {
+            ordersList.add(list.get(i));
+            //满1000个使用另外一个ordersList
+            if (ordersList.size() == 1000) {
+                result.add(ordersList);
+                ordersList = new ArrayList<ErpOrders>();
+            }
+        }
+        if (ordersList.size() != 0) {
+            result.add(ordersList);
+        }
+        return result;
+    }
+
+
+    /*private void saveOrders2(List<ErpOrders> list) throws Exception {
+        QueryRunner run = new QueryRunner();
+        String sql = "insert into erp_orders values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+        int size = list.size();
+        Object[][] params = new Object[size][];
+        for (int i = 0; i < size; i++) {
+            Object ordersObj[] = new Object[24];
+            params[i] = ordersObj;
+            ErpOrders order = list.get(i);
+            ordersObj[0] = order.getErpOrdersId();
+            ordersObj[1] = "";
+            ordersObj[2] = order.getWarehouseid();
+            ordersObj[3] = order.getBuyerCity();
+            ordersObj[4] = order.getBuyerState();
+            ordersObj[5] = order.getBuyerCountry();
+            ordersObj[6] = order.getShippingMethod();
+            ordersObj[7] = order.getSalesAccount();
+            ordersObj[8] = order.getOrdersType();
+            ordersObj[9] = order.getOrdersStatus();
+            ordersObj[10] = order.getOrdersExportTime();
+            ordersObj[11] = order.getFee();
+            ordersObj[12] = order.getHeavi();
+            ordersObj[13] = order.getSize();
+            ordersObj[14] = order.getOrdersOutTime();
+            ordersObj[15] = order.getOrdersMailCode();
+            ordersObj[16] = order.getOrdersMailTime();
+            ordersObj[17] = order.getErpPostOffice();
+            ordersObj[18] = order.getOrdersPrintTime();
+            ordersObj[19] = order.getEbayCounycode();
+            ordersObj[20] = order.getFreightcode();
+            ordersObj[21] = order.getYksid();
+            ordersObj[22] = new Timestamp(System.currentTimeMillis());
+            ordersObj[23] = 0;
+        }
+        run.insertBatch(JdbcUtils.getConnection2(), sql, new ArrayHandler(), params);
+    }*/
+
+    /**
+     * jdbc 获取orders信息
+     *
+     * @return
+     * @throws Exception
+     */
+    private List<Orders> queryResult() throws Exception {
+        QueryRunner queryRunner = new QueryRunner();
+        Connection connection = JdbcUtils.getConnection();
+        List<Orders> query = (List<Orders>) queryRunner.query(connection, IMPORTERPDATASQL10W, new BeanListHandler(Orders.class));
+        JdbcUtils.destoryConnection(connection);
+        return query;
+    }
+
+    @Override
+    public List<String> selectplatform() {
+        return erp_ordersMapper.selectplatform();
+    }
+
+    @Override
+    public List<String> selectchannelName() {
+        return erp_ordersMapper.selectchannelName();
+    }
+
+    /**
+     * 查询异常订单
+     *
+     * @param channel
+     * @return
+     */
+    @Override
+    public List<ErpOrders> selectExceptionErpOrders(ErpOrders channel) {
+        return erp_ordersMapper.selectExceptionErpOrders(channel);
+    }
+
+    /**
+     * 查询订单明细
+     *
+     * @param channel
+     * @return
+     */
+    @Override
+    public List<ErpOrders> selectErpOrdersDetails(ErpOrders channel) {
+        return erp_ordersMapper.selectErpOrdersDetails(channel);
+    }
+
+    @Override
+    public void updateErpOrders(ErpOrders orders) {
+        erp_ordersMapper.updateByPrimaryKeySelective(orders);
+    }
+
+    /**
+     * 报表
+     *
+     * @param report
+     */
+    @Override
+    public List<LogisticReport> selectReportData(LogisticReport report) {
+        return erp_ordersMapper.selectReportData(report);
+    }
+
+    @Override
+    public List<LogisticReport> selectReportDataChannel(LogisticReport report) {
+        return erp_ordersMapper.selectReportDataChannel(report);
+    }
+
+}

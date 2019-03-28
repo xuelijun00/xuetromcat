@@ -1,0 +1,32 @@
+package com.yks.bigdata.service.trackmore.impl;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
+
+import static org.junit.Assert.*;
+
+/**
+ * Created by liuxing on 2017/9/15.
+ */
+@RunWith(SpringRunner.class)
+@SpringBootTest
+public class ChannelLWEServiceTest {
+
+    @Autowired
+    ChannelLWEService channelLWEService;
+
+    @Test
+    public void queryLWEApi() throws Exception {
+        channelLWEService.queryLWEApi();
+    }
+
+    @Test
+    public void sendRequestQueryIBApi() throws Exception {
+        String url = "http://api.unixus.com.my/Tracking/V2/Tracking.svc/json/Details/?ids=0173941742919679,156130511201136";
+        channelLWEService.sendRequestQueryIBApi(url);
+    }
+
+}

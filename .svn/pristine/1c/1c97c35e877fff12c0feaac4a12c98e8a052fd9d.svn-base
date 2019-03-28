@@ -1,0 +1,28 @@
+package com.yks.bigdata.test;
+
+import com.yks.bigdata.util.JdbcUtils;
+import org.apache.commons.dbutils.QueryRunner;
+import org.apache.commons.dbutils.handlers.MapListHandler;
+
+import java.sql.Connection;
+import java.sql.Driver;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+
+/**
+ * Created by zh on 2017/5/16.
+ */
+public class TestJdbc {
+
+    public static void main(String[] args)throws Exception {
+
+        QueryRunner query = new QueryRunner();
+        List<Map<String, Object>> query1 = query.query(JdbcUtils.getKylinConnection(), "select count(1) from order2", new MapListHandler());
+        System.out.println(query1);
+
+
+    }
+}

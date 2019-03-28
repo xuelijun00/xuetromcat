@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <title>YKS物流信息状态查询系统</title>
+    <script th:src="@{/jsLoad/code/load.js}" src="jsLoad/code/load.js" include="../top.html"></script>
+</head>
+<body class="gray-bg">
+<div class="wrapper wrapper-content">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h3>数据重算</h3>
+                    <h5>注：当节点增减时，意味着之前所有匹配的节点数据都是有问题的,所有的数据需要重跑,要有个缓冲时间,渠道才会正常，谨慎增减节点</h5>
+                    <h5>1、系统不会对已妥投的数据抓取，如果需要计算这不部分需要执行手动查询功能补数据</h5>
+                    <h5>2、当数据补完时，可以执行数据重算，生成报表</h5>
+                </div>
+                <div class="ibox-content">
+                    <form class="form-inline request" method="get" th:action="@{/LogisticChannel/rediscalcula/view}">
+                        <div class="form-group">
+                            <label>渠道</label>
+                            <select class="chosen-select form-control"
+                                    data-placeholder="请选择" tabindex="-1" name="channel"
+                                    data-name-group="common" >
+                                <div th:each="channel,channelState:${channels}">
+                                    <option value="" th:value="${channel.yksChannelName}" th:text="${channel.yksChannelName}" th:selected="(${channel.yksChannelName} == ${channel})"></option>
+                                </div>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>开始日期：</label>
+                            <input type="text" class="form-control" th:value="${startTime}" name="startTime" id="start_date"/>
+                        </div>
+                        <div class="form-group">
+                            <label>结束日期：</label>
+                            <input type="text" class="form-control" th:value="${endTime}" name="endTime" id="end_date"/>
+                        </div>
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">重算</button>
+                        </div>
+                    </form>
+                    <div th:text="${responseData}"></div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script th:src="@{/jsLoad/code/load.js}" src="jsLoad/code/load.js" include="../js.html"></script>
+<!--加本页面 的js文件与js代码-->
+<script th:inline="javascript" th:src="@{/js/chosen.js}" ></script>
+<script th:inline="javascript" th:src="@{/js/trackmore/common.js}" ></script>
+<script>
+    $("#start_date").jeDate({
+        format: "YYYY-MM-DD",
+        minDate: "2017-08-20",
+        isinitVal:true,
+        initDate:[{DD:"-7"},true],
+        isClear:false,
+    });
+    $("#end_date").jeDate({
+        format: "YYYY-MM-DD",
+        minDate: "2017-08-20",
+        isinitVal:true,
+        isClear:false,
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yks.bigdata.dao.TrackLWEInfoMapper" >
+  <resultMap id="BaseResultMap" type="com.yks.bigdata.dto.trackmore.TrackLWEInfo" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="company_name" property="companyName" jdbcType="VARCHAR" />
+    <result column="country_code" property="countryCode" jdbcType="VARCHAR" />
+    <result column="country_description" property="countryDescription" jdbcType="VARCHAR" />
+    <result column="event_code" property="eventCode" jdbcType="VARCHAR" />
+    <result column="event_description" property="eventDescription" jdbcType="VARCHAR" />
+    <result column="reason_code" property="reasonCode" jdbcType="VARCHAR" />
+    <result column="reason_description" property="reasonDescription" jdbcType="VARCHAR" />
+    <result column="remarks" property="remarks" jdbcType="VARCHAR" />
+    <result column="station_code" property="stationCode" jdbcType="VARCHAR" />
+    <result column="station_description" property="stationDescription" jdbcType="VARCHAR" />
+    <result column="station_name" property="stationName" jdbcType="VARCHAR" />
+    <result column="str_date" property="strDate" jdbcType="VARCHAR" />
+    <result column="TransactionDate" property="transactiondate" jdbcType="BIGINT" />
+    <result column="hawbno" property="hawbno" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, company_name, country_code, country_description, event_code, event_description, 
+    reason_code, reason_description, remarks, station_code, station_description, station_name, 
+    str_date, TransactionDate, hawbno, create_time
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from track_lwe_info
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from track_lwe_info
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <delete id="deleteByTrackNum" parameterType="java.lang.String" >
+    delete from track_lwe_info
+    where hawbno = #{id,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="com.yks.bigdata.dto.trackmore.TrackLWEInfo" >
+    insert into track_lwe_info (id, company_name, country_code, 
+      country_description, event_code, event_description, 
+      reason_code, reason_description, remarks, 
+      station_code, station_description, station_name, 
+      str_date, TransactionDate, hawbno, 
+      create_time)
+    values (#{id,jdbcType=INTEGER}, #{companyName,jdbcType=VARCHAR}, #{countryCode,jdbcType=VARCHAR}, 
+      #{countryDescription,jdbcType=VARCHAR}, #{eventCode,jdbcType=VARCHAR}, #{eventDescription,jdbcType=VARCHAR}, 
+      #{reasonCode,jdbcType=VARCHAR}, #{reasonDescription,jdbcType=VARCHAR}, #{remarks,jdbcType=VARCHAR}, 
+      #{stationCode,jdbcType=VARCHAR}, #{stationDescription,jdbcType=VARCHAR}, #{stationName,jdbcType=VARCHAR}, 
+      #{strDate,jdbcType=VARCHAR}, #{transactiondate,jdbcType=BIGINT}, #{hawbno,jdbcType=VARCHAR}, 
+      #{createTime,jdbcType=TIMESTAMP})
+  </insert>
+
+  <insert id="addBatch" parameterType="java.util.List" >
+    insert into track_lwe_info ( company_name, country_code,
+    country_description, event_code, event_description,
+    reason_code, reason_description, remarks,
+    station_code, station_description, station_name,
+    str_date, TransactionDate, hawbno,
+    create_time)
+    values
+    <foreach collection="list" index="index" item="item" open="" close="" separator=",">
+      (#{item.companyName,jdbcType=VARCHAR}, #{item.countryCode,jdbcType=VARCHAR},
+      #{item.countryDescription,jdbcType=VARCHAR}, #{item.eventCode,jdbcType=VARCHAR}, #{item.eventDescription,jdbcType=VARCHAR},
+      #{item.reasonCode,jdbcType=VARCHAR}, #{item.reasonDescription,jdbcType=VARCHAR}, #{item.remarks,jdbcType=VARCHAR},
+      #{item.stationCode,jdbcType=VARCHAR}, #{item.stationDescription,jdbcType=VARCHAR}, #{item.stationName,jdbcType=VARCHAR},
+      #{item.strDate,jdbcType=VARCHAR}, #{item.transactiondate,jdbcType=BIGINT}, #{item.hawbno,jdbcType=VARCHAR},
+      #{item.createTime,jdbcType=TIMESTAMP})
+    </foreach>
+  </insert>
+
+  <insert id="insertSelective" parameterType="com.yks.bigdata.dto.trackmore.TrackLWEInfo" >
+    insert into track_lwe_info
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="companyName != null" >
+        company_name,
+      </if>
+      <if test="countryCode != null" >
+        country_code,
+      </if>
+      <if test="countryDescription != null" >
+        country_description,
+      </if>
+      <if test="eventCode != null" >
+        event_code,
+      </if>
+      <if test="eventDescription != null" >
+        event_description,
+      </if>
+      <if test="reasonCode != null" >
+        reason_code,
+      </if>
+      <if test="reasonDescription != null" >
+        reason_description,
+      </if>
+      <if test="remarks != null" >
+        remarks,
+      </if>
+      <if test="stationCode != null" >
+        station_code,
+      </if>
+      <if test="stationDescription != null" >
+        station_description,
+      </if>
+      <if test="stationName != null" >
+        station_name,
+      </if>
+      <if test="strDate != null" >
+        str_date,
+      </if>
+      <if test="transactiondate != null" >
+        TransactionDate,
+      </if>
+      <if test="hawbno != null" >
+        hawbno,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="companyName != null" >
+        #{companyName,jdbcType=VARCHAR},
+      </if>
+      <if test="countryCode != null" >
+        #{countryCode,jdbcType=VARCHAR},
+      </if>
+      <if test="countryDescription != null" >
+        #{countryDescription,jdbcType=VARCHAR},
+      </if>
+      <if test="eventCode != null" >
+        #{eventCode,jdbcType=VARCHAR},
+      </if>
+      <if test="eventDescription != null" >
+        #{eventDescription,jdbcType=VARCHAR},
+      </if>
+      <if test="reasonCode != null" >
+        #{reasonCode,jdbcType=VARCHAR},
+      </if>
+      <if test="reasonDescription != null" >
+        #{reasonDescription,jdbcType=VARCHAR},
+      </if>
+      <if test="remarks != null" >
+        #{remarks,jdbcType=VARCHAR},
+      </if>
+      <if test="stationCode != null" >
+        #{stationCode,jdbcType=VARCHAR},
+      </if>
+      <if test="stationDescription != null" >
+        #{stationDescription,jdbcType=VARCHAR},
+      </if>
+      <if test="stationName != null" >
+        #{stationName,jdbcType=VARCHAR},
+      </if>
+      <if test="strDate != null" >
+        #{strDate,jdbcType=VARCHAR},
+      </if>
+      <if test="transactiondate != null" >
+        #{transactiondate,jdbcType=BIGINT},
+      </if>
+      <if test="hawbno != null" >
+        #{hawbno,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.yks.bigdata.dto.trackmore.TrackLWEInfo" >
+    update track_lwe_info
+    <set >
+      <if test="companyName != null" >
+        company_name = #{companyName,jdbcType=VARCHAR},
+      </if>
+      <if test="countryCode != null" >
+        country_code = #{countryCode,jdbcType=VARCHAR},
+      </if>
+      <if test="countryDescription != null" >
+        country_description = #{countryDescription,jdbcType=VARCHAR},
+      </if>
+      <if test="eventCode != null" >
+        event_code = #{eventCode,jdbcType=VARCHAR},
+      </if>
+      <if test="eventDescription != null" >
+        event_description = #{eventDescription,jdbcType=VARCHAR},
+      </if>
+      <if test="reasonCode != null" >
+        reason_code = #{reasonCode,jdbcType=VARCHAR},
+      </if>
+      <if test="reasonDescription != null" >
+        reason_description = #{reasonDescription,jdbcType=VARCHAR},
+      </if>
+      <if test="remarks != null" >
+        remarks = #{remarks,jdbcType=VARCHAR},
+      </if>
+      <if test="stationCode != null" >
+        station_code = #{stationCode,jdbcType=VARCHAR},
+      </if>
+      <if test="stationDescription != null" >
+        station_description = #{stationDescription,jdbcType=VARCHAR},
+      </if>
+      <if test="stationName != null" >
+        station_name = #{stationName,jdbcType=VARCHAR},
+      </if>
+      <if test="strDate != null" >
+        str_date = #{strDate,jdbcType=VARCHAR},
+      </if>
+      <if test="transactiondate != null" >
+        TransactionDate = #{transactiondate,jdbcType=BIGINT},
+      </if>
+      <if test="hawbno != null" >
+        hawbno = #{hawbno,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.yks.bigdata.dto.trackmore.TrackLWEInfo" >
+    update track_lwe_info
+    set company_name = #{companyName,jdbcType=VARCHAR},
+      country_code = #{countryCode,jdbcType=VARCHAR},
+      country_description = #{countryDescription,jdbcType=VARCHAR},
+      event_code = #{eventCode,jdbcType=VARCHAR},
+      event_description = #{eventDescription,jdbcType=VARCHAR},
+      reason_code = #{reasonCode,jdbcType=VARCHAR},
+      reason_description = #{reasonDescription,jdbcType=VARCHAR},
+      remarks = #{remarks,jdbcType=VARCHAR},
+      station_code = #{stationCode,jdbcType=VARCHAR},
+      station_description = #{stationDescription,jdbcType=VARCHAR},
+      station_name = #{stationName,jdbcType=VARCHAR},
+      str_date = #{strDate,jdbcType=VARCHAR},
+      TransactionDate = #{transactiondate,jdbcType=BIGINT},
+      hawbno = #{hawbno,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>

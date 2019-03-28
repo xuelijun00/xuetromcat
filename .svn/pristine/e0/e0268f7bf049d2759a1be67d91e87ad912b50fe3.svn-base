@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8" />
+    <title>YKSUI框架 - 需求管理</title>
+    <script src="jsLoad/code/load.js?20170116" th:src="@{/jsLoad/code/load.js}" include="../top.html"></script>
+    <!--加css-->
+</head>
+<body class="gray-bg">
+<div class="wrapper wrapper-content">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-content">
+                    <form class="form-horizontal m-t container-form" id="statusManagement" method="post" th:action="${statusInfo != null}?@{/StatusInformation/update/}:@{/StatusInformation/insert}">
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">渠道名称：</label>
+                            <div class="col-sm-7">
+                              <select class="chosen-select form-control"
+                                        data-placeholder="请选择" tabindex="-1" name="channel"
+                                        data-name-group="common"  multiple="multiple" th:if="${statusInfo == null}" >
+                                    <option value="" >请选择</option>
+                                    <div th:each="channel,channelState:${channels}">
+                                        <option value="" th:value="${channel.yksChannelName}"  th:text="${channel.yksChannelName}" ></option>
+                                    </div>
+                                </select>
+                                <input type="text"  name="channel"  class="form-control" th:if="${statusInfo != null}" th:value="${statusInfo[0].channel}" readonly="readonly"  />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">上网 (关键字)：</label>
+                            <div class="col-sm-7">
+                                <input type="hidden" name="id" class="form-control" th:value="${statusInfo != null?statusInfo[0].id:0}" />
+                                <input type="text" name="status"  class="form-control" th:value="${statusInfo != null?statusInfo[0].keyword:''}"  />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">排除上网 (关键字)：</label>
+                            <div class="col-sm-7">
+                                <input type="text" name="excludeStatus"  class="form-control" th:value="${statusInfo != null?statusInfo[0].excludeKeyword:''}"  />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">封发 (关键字)：</label>
+                            <div class="col-sm-7">
+                                <input type="hidden" name="id" class="form-control" th:value="${statusInfo != null?statusInfo[1].id:0}" />
+                                <input type="text"  name="status" class="form-control" th:value="${statusInfo != null?statusInfo[1].keyword:''}"  />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">排除封发 (关键字)：</label>
+                            <div class="col-sm-7">
+                                <input type="text"  name="excludeStatus" class="form-control" th:value="${statusInfo != null?statusInfo[1].excludeKeyword:''}"  />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">交航 (关键字)：</label>
+                            <div class="col-sm-7">
+                                <input type="hidden" name="id" class="form-control" th:value="${statusInfo != null?statusInfo[2].id:0}" />
+                                <input type="text"  name="status" class="form-control" th:value="${statusInfo != null?statusInfo[2].keyword:''}" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">排除交航 (关键字)：</label>
+                            <div class="col-sm-7">
+                                <input type="text"  name="excludeStatus" class="form-control" th:value="${statusInfo != null?statusInfo[2].excludeKeyword:''}"  />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">落地 (关键字)：</label>
+                            <div class="col-sm-7">
+                                <input type="hidden" name="id" class="form-control" th:value="${statusInfo != null?statusInfo[3].id:0}" />
+                                <input type="text"  name="status" class="form-control" th:value="${statusInfo != null?statusInfo[3].keyword:''}"/>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">排除落地 (关键字)：</label>
+                            <div class="col-sm-7">
+                                <input type="text"  name="excludeStatus" class="form-control" th:value="${statusInfo != null?statusInfo[3].excludeKeyword:''}" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">妥投 (关键字)：</label>
+                            <div class="col-sm-7">
+                                <input type="hidden" name="id" class="form-control" th:value="${statusInfo != null?statusInfo[4].id:0}" />
+                                <input type="text" name="status" class="form-control" th:value="${statusInfo != null?statusInfo[4].keyword:''}" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">排除妥投 (关键字)：</label>
+                            <div class="col-sm-7">
+                                <input type="text" name="excludeStatus" class="form-control" th:value="${statusInfo != null?statusInfo[4].excludeKeyword:''}" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-4 col-sm-offset-5">
+                                <button class="btn btn-primary btn-save" type="submit" onclick="channelManagement.save()" >保存</button>
+                                <button class="btn btn-default " type="button" onclick="parent.common.close(201)">取消</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="jsLoad/code/load.js?20170116" th:src="@{/jsLoad/code/load.js}" include="../js.html"></script>
+<!--加本页面 的js文件与js代码-->
+<script src="js/chosen.js" th:src="@{/js/chosen.js}"></script>
+<script th:inline="javascript" th:src="@{/js/trackmore/logistics_status.js}"></script>
+</body>
+</html>

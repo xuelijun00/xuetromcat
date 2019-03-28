@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"></meta>
+    <title>YKS物流信息状态查询系统</title>
+    <script th:src="@{/jsLoad/code/load.js}" src="jsLoad/code/load.js" include="../top.html"></script>
+</head>
+<body class="gray-bg">
+<div class="wrapper wrapper-content">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>物流信息查询</h5>
+                </div>
+                <div class="ibox-content">
+                    <form class="form-inline request" method="get" th:action="@{/LogisticsReport/view1}" id="form">
+
+                       <div class="form-group">
+                            <label>平台：</label>
+                            <select class="chosen-select form-control"
+                                    data-placeholder="请选择" tabindex="-1" name="platform"
+                                    data-name-group="common" multiple="multiple">
+                                <div th:each="platform1,platformState:${platform}" >
+                                    <option value="" th:value="${platform1}"  th:text="${platform1}" th:selected="${not #arrays.isEmpty(platformParam)} and ${#arrays.contains(platformParam,platform1)}"></option>
+                                </div>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>国家：</label>
+                            <select class="chosen-select form-control"
+                                    data-placeholder="请选择" tabindex="-1" name="country"
+                                    data-name-group="common" multiple="multiple">
+                                <div th:each="country1,countryState:${country}" >
+                                    <option value="" th:value="${country1}"  th:text="${country1}" th:selected="${not #arrays.isEmpty(countryParam)} and ${#arrays.contains(countryParam,country1)}"></option>
+                                </div>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>渠道：</label>
+                            <select class="chosen-select form-control"
+                                    data-placeholder="请选择" tabindex="-1" name="channel"
+                                    data-name-group="common" multiple="multiple">
+                                <div th:each="channel1,channelState:${channel}" >
+                                    <option value="" th:value="${channel1}"  th:text="${channel1}" th:selected="${not #arrays.isEmpty(channelParam)} and ${#arrays.contains(channelParam,channel1)}"></option>
+                                </div>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>开始日期：</label>
+                            <input type="text" class="form-control" th:value="${startTime}" name="startTime" id="start_date"/>
+                        </div>
+                        <div class="form-group">
+                            <label>结束日期：</label>
+                            <input type="text" class="form-control" th:value="${endTime}" name="endTime" id="end_date"/>
+                        </div>
+                        
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">查询</button>
+                        </div>
+                    </form>
+                    <div class="hr-line-dashed"></div>
+                    <div class="mbottom">
+                        <a href="javascript:;" onclick="" th:onclick="'javascripe:channelManagement.downloadCsv();'">
+                            <i class="fa fa-download"></i>下载csv</a>
+                    </div>
+
+                    <div class="tabled_scroll scrollbar">
+                        <table class="table table-striped table-bordered table-hover table_width">
+                            <thead>
+                            <tr>
+                                <th width="50">序号</th>
+                                <th>平台</th>
+                                <th>国家</th>
+                                <th>渠道</th>
+                                <th>付款订单</th>
+                                <th>发货总数</th>
+                                <th>订单执行占比</th>
+                                <th>上网数</th>
+                                <th>上网率(%)</th>
+                                <th>平均上网天数</th>
+                                <th>封发数</th>
+                                <th>封发率(%)</th>
+                                <th>平均封发天数</th>
+                                <th>交航数</th>
+                                <th>交航率(%)</th>
+                                <th>平均交航天数</th>
+                                <th>落地数</th>
+                                <th>落地率(%)</th>
+                                <th>平均落地天数</th>
+                                <th>妥投数</th>
+                                <th>妥投率(%)</th>
+                                <th>平均妥投天数</th>
+                                <th>总重量</th>
+                                <th>平均重量</th>
+                                <th>总运费</th>
+                                <th>平均单价（/g）</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <!--<tr th:each="row,rowState:${table}">
+                                <td width="50" th:text="${rowState.index + 1}">序号</td>
+                                <td th:text="${row.platform}">平台</td>
+                                <td th:text="${row.buyerCountry}">国家</td>
+                                <td th:text="${row.channelName}">渠道</td>
+                                <td th:text="${row.paymentcount}">付款订单</td>
+                                <td th:text="${row.shipcount}">发货总数</td>
+                                <td th:text="${row.orderexecutionPercent}">订单执行占比</td>
+
+                                <td th:text="${row.internetcount != null?row.internetcount:0}">上网数</td>
+                                <td th:text="${row.internetPercent != null? (row.internetPercent * 100) + '%':'0%'}">上网率(%)</td>
+                                <td th:text="${row.internetDate != null?row.internetDate:0}">平均上网天数</td>
+
+                                <td th:text="${row.balecount != null?row.balecount:0}">封发数</td>
+                                <td th:text="${row.balePercent != null?(row.balePercent * 100) + '%':'0%'}">封发率(%)</td>
+                                <td th:text="${row.baleDate != null?row.baleDate:0}">平均封发天数</td>
+
+                                <td th:text="${row.trafficcount!=null?row.trafficcount:0}">交航数</td>
+                                <td th:text="${row.trafficPercent!=null?(row.trafficPercent*100) + '%':'0%'}">交航率(%)</td>
+                                <td th:text="${row.trafficDate!=null?row.trafficDate:0}">平均交航天数</td>
+
+                                <td th:text="${row.landingcount!=null?row.landingcount:0}">落地数</td>
+                                <td th:text="${row.landingPercent!=null?(row.landingPercent*100) + '%':'0%'}">落地率(%)</td>
+                                <td th:text="${row.landingDate!=null?row.landingDate:0}">平均落地天数</td>
+
+                                <td th:text="${row.deliveredcount!=null?row.deliveredcount:0}">妥投数</td>
+                                <td th:text="${row.deliveredPercent!=null?(row.deliveredPercent*100) + '%':'0%'}">妥投率(%)</td>
+                                <td th:text="${row.deliveredDate!=null?row.deliveredDate:0}">平均妥投天数</td>
+
+                                <td th:text="${row.heavi}">总重量</td>
+                                <td th:text="${row.avgheavi}">平均重量</td>
+                                <td th:text="${row.fee}">总运费</td>
+                                <td th:text="${row.avgprice}">平均单价（/g）</td>
+                            </tr>-->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="row" >
+                        <div class="col-md-6 pull-left top20 " >
+                            <input id="curPage" th:value="${table.page}" type="hidden"/>
+                            <input id="pagetotal" th:value="${table.total}" type="hidden"/>
+                            <label id="pageinfo">每页 <select class="input-sm" id="pagesize" onclick="channelManagement.pageSizeChange(this)">
+                                <option value="10">10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option></select> 条记录 显示 <em th:text="${(table.page - 1) * 10 + 1}"></em> 到 <em th:text="${table.page * 10 }"></em> 项，共 <em th:text="${table.records}"></em>项</label>
+                        </div>
+                        <div class="col-md-6 pull-right text-right" >
+                            <div id="page"></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<input id="layerwin" value="" type="hidden"/>
+<script th:src="@{/jsLoad/code/load.js}" src="jsLoad/code/load.js" include="../js.html"></script>
+<!--加本页面 的js文件与js代码-->
+<script th:src="@{/js/chosen.js}" src="js/chosen.js"></script>
+<script th:inline="javascript" th:src="@{/js/trackmore/common.js}" ></script>
+<script th:inline="javascript" th:src="@{/js/trackmore/logistics_report1.js}" ></script>
+</body>
+</html>

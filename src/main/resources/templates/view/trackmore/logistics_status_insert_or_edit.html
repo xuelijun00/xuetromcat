@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8" />
+    <title>YKSUI框架 - 需求管理</title>
+    <script src="jsLoad/code/load.js?20170116" th:src="@{/jsLoad/code/load.js}" include="../top.html"></script>
+    <!--加css-->
+</head>
+<body class="gray-bg">
+<div class="wrapper wrapper-content">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-content">
+                    <form class="form-inline" id="statusManagement" method="post" th:action="${statusInfo != null}?@{/StatusInformation/update/}:@{/StatusInformation/insert}">
+                        <div class="modal-body">
+                            <table class="table table-bordered top20" th:if="${statusInfo == null}">
+                                <thead>
+                                <tr>
+                                    <th>渠道</th>
+                                    <th>状态名称</th>
+                                    <th>匹配关键字</th>
+                                    <th>排除关键字</th>
+                                </tr>
+                                </thead>
+                                <tbody id="tbody">
+                                <tr class="tr">
+                                    <td><div class="form-group">
+                                        <select class="chosen-select form-control channel_class"
+                                                data-placeholder="请选择" tabindex="-1" name="channel"
+                                                data-name-group="common" th:if="${statusInfo == null}" >
+                                            <option value="" >请选择</option>
+                                            <div th:each="channel,channelState:${channels}">
+                                                <option value="" th:value="${channel.yksChannelName}"  th:text="${channel.yksChannelName}" ></option>
+                                            </div>
+                                        </select>
+                                    </div>
+                                    </td>
+                                    <td><input type="text" name="statusName" class="form-control w80 inputReadOnly" placeholder="" /></td>
+                                    <td><input type="text" name="keyword" class="form-control w160" placeholder="" /></td>
+                                    <td><input type="text" name="excludeKeyword" class="form-control w160" placeholder="" /></td>
+                                </tr>
+                                </tbody>
+                            </table>
+
+                            <!--更新-->
+                            <table class="table table-bordered top20" th:if="${statusInfo != null}">
+                                <thead>
+                                <tr>
+                                    <th>渠道</th>
+                                    <th>状态名称</th>
+                                    <th>匹配关键字</th>
+                                    <th>排除关键字</th>
+                                </tr>
+                                </thead>
+                                <tbody id="tbody">
+                                <tr class="tr" th:each="logisticsStatus,statusState:${statusInfo}">
+                                    <input type="hidden" name="id" th:value="${logisticsStatus.id}" class="form-control w80 inputReadOnly" placeholder="" />
+                                    <td><input type="text" name="channel" th:value="${logisticsStatus.channel}" class="form-control w80 channel_class" readonly="readonly" placeholder="" /></td>
+                                    <td><input type="text" name="statusName" th:value="${logisticsStatus.statusName}" class="form-control w80 inputReadOnly" placeholder="" /></td>
+                                    <td><input type="text" name="keyword" th:value="${logisticsStatus.keyword}" class="form-control w160" placeholder="" /></td>
+                                    <td><input type="text" name="excludeKeyword" th:value="${logisticsStatus.excludeKeyword}" class="form-control w160" placeholder="" /></td>
+                                </tr>
+                                </tbody>
+                            </table>
+                            <div class="mbottom"> <a href="javascript:void(0);" id="insertRecord"><i class="fa fa-plus"></i>新增</a>
+                                <a href="javascript:void(0);" id="deleteRecord"><i class="fa fa-plus"></i>删除</a></div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-primary btn-save" type="submit" onclick="channelManagement.save()" >保存</button>
+                            <button class="btn btn-default " type="button" onclick="parent.common.close(201)">取消</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="jsLoad/code/load.js?20170116" th:src="@{/jsLoad/code/load.js}" include="../js.html"></script>
+<!--加本页面 的js文件与js代码-->
+<script src="js/chosen.js" th:src="@{/js/chosen.js}"></script>
+<script th:inline="javascript" th:src="@{/js/trackmore/logistics_status.js}" ></script>
+<script type="text/javascript">
+    $("#deleteRecord").on("click",function(){
+        var trs = $("#tbody tr");
+        if(trs.length > 1){
+            trs[trs.length - 1].remove();
+        }
+    });
+    $("#insertRecord").on("click",function(){
+        //var tr = $("#tbody tr:eq(0)").clone(true);
+        var channel = $(".channel_class").val();
+        var tr = '<tr class="tr">' +
+            '<td><input type="text" name="channel" readonly="readonly" value="'+channel+'" class="form-control w210 inputReadOnly" placeholder="" /></td>'+
+            '<td><input type="text" name="statusName" class="form-control w80 inputReadOnly" placeholder="" /></td>'+
+            '<td><input type="text" name="keyword" class="form-control w160" placeholder="" /></td>'+
+            '<td><input type="text" name="excludeKeyword" class="form-control w160" placeholder="" /></td>'+
+            '</tr>';
+        $("#tbody").append(tr);
+        $.each($("input",tr),function(i,n){
+            $(n).val("");
+        });
+    });
+
+    $(".chosen-select").on("change",function(){
+        var channel = $(".chosen-select").val();
+        $("input[name='channel']").each(function(){
+            $(this).val(channel);
+        });
+    });
+
+</script>
+</body>
+</html>

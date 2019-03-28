@@ -1,0 +1,116 @@
+package com.yks.bigdata.service.trackmore.impl;
+
+import com.yks.bigdata.dao.SystemExceptionMapper;
+import com.yks.bigdata.dao.TrackmoreAccountMapper;
+import com.yks.bigdata.dto.system.SystemException;
+import com.yks.bigdata.dto.trackmore.TrackmoreAccount;
+import com.yks.bigdata.service.trackmore.ITrackmoreAccountService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+/**
+ * Created by zh on 2017/6/30.
+ */
+@Transactional(value="transactionManager")
+@Service
+public class TrackmoreAccountServiceImpl implements ITrackmoreAccountService {
+
+    private static Logger log = LoggerFactory.getLogger(TrackmoreAccountServiceImpl.class);
+
+    @Autowired
+    TrackmoreAccountMapper accountMapper;
+
+    @Autowired
+    SystemExceptionMapper systemExceptionMapper;
+
+    @Override
+    public int insert(TrackmoreAccount account) {
+        return accountMapper.insert(account);
+    }
+
+    @Override
+    public void update(TrackmoreAccount account) {
+        accountMapper.updateByPrimaryKeySelective(account);
+    }
+
+    @Override
+    public void enable(TrackmoreAccount account) {
+        TrackmoreAccount trackmoreAccount = accountMapper.selectByPrimaryKey(account.getId());
+        trackmoreAccount.setStatus(1);
+        accountMapper.updateByPrimaryKey(trackmoreAccount);
+    }
+
+    @Override
+    public void disable(TrackmoreAccount account) {
+        TrackmoreAccount trackmoreAccount = accountMapper.selectByPrimaryKey(account.getId());
+        trackmoreAccount.setStatus(2);
+        accountMapper.updateByPrimaryKey(trackmoreAccount);
+    }
+
+
+    @Override
+    public List<TrackmoreAccount> selectTrackmoreAccount(TrackmoreAccount account) {
+        return accountMapper.selectTrackmoreAccount(account);
+    }
+
+    /**
+     * 获取可用的account 额度大于0的账号 并且额度减少
+     * 加锁
+     * @param quto
+     * @return
+     */
+    @Override
+    public synchronized TrackmoreAccount selectAvailableReduceAccount(Integer quto) {
+        TrackmoreAccount account = accountMapper.selectAvailableAccount(quto);
+        if(account == null)return null;
+        int quote2 = account.getDataCount() - quto;
+        account.setDataCount(quote2);
+        accountMapper.updateByPrimaryKey(account);
+        systemExceptionMapper.insert(new SystemException("trackmore注册成功","账号：" + account.getAccount() + "额度：" + (account.getDataCount() - quto)));
+        return account;
+    }
+
+    /**
+     * 获取额度大于40的账号 为可用账号
+     *
+     * @return
+     */
+    @Override
+    public TrackmoreAccount selectAvailableAccount() {
+        return accountMapper.selectAvailableAccount(40);
+    }
+
+    /**
+     * 减少账号额度
+     *
+     * @param id
+     * @param dataCount
+     */
+    @Override
+    public void reduceDataCount(Integer id, Integer dataCount) {
+        TrackmoreAccount account = new TrackmoreAccount();
+        account.setId(id);
+        account.setDataCount(dataCount);
+        accountMapper.updateByPrimaryKeySelective(account);
+    }
+
+    /**
+     * 根据账号名查询账号
+     * @param account
+     * @return
+     */
+    @Override
+    public TrackmoreAccount selectByAccount(String account) {
+        return  accountMapper.selectByAccount(account);
+    }
+
+    @Override
+    public TrackmoreAccount selectByPrimaryKey(int id) {
+        return  accountMapper.selectByPrimaryKey(id);
+    }
+}

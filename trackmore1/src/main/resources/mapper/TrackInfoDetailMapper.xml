@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yks.bigdata.dao.Track_info_detailMapper" >
+  <resultMap id="BaseResultMap" type="com.yks.bigdata.dto.trackmore.TrackInfoDetail" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="track_info_id" property="trackInfoId" jdbcType="INTEGER" />
+    <result column="track_type" property="trackType" jdbcType="INTEGER" />
+    <result column="track_date" property="trackDate" jdbcType="TIMESTAMP" />
+    <result column="status_description" property="statusDescription" jdbcType="VARCHAR" />
+    <result column="details" property="details" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, track_info_id, track_type, track_date, status_description, details
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from track_info_detail
+     where 1=1
+  
+  </select>
+  
+  
+  <select id="selectTrackInfoDetail" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+	    select
+	    <include refid="Base_Column_List" />
+	    from track_info_detail
+	    where 1=1
+        <if test="trackInfoId != null">
+            and track_info_id = #{trackInfoId,jdbcType=INTEGER}
+        </if>	    
+	  </select>
+  
+  
+  
+  
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from track_info_detail
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <delete id="deleteByInfoId" parameterType="java.lang.Integer" >
+    delete from track_info_detail
+    where track_info_id = #{trackInfoId,jdbcType=INTEGER}
+  </delete>
+
+  <insert id="insert" parameterType="com.yks.bigdata.dto.trackmore.TrackInfoDetail" >
+    insert into track_info_detail (id, track_info_id, track_type, 
+      track_date, status_description, details
+      )
+    values (#{id,jdbcType=INTEGER}, #{trackInfoId,jdbcType=INTEGER}, #{trackType,jdbcType=INTEGER}, 
+      #{trackDate,jdbcType=TIMESTAMP}, #{statusDescription,jdbcType=VARCHAR}, #{details,jdbcType=VARCHAR}
+      )
+  </insert>
+
+  <insert id="addBatch" parameterType="java.util.List" >
+    insert into track_info_detail ( track_info_id, track_type,
+    track_date, status_description, details
+    )
+    values
+    <foreach collection="list" index="index" item="item" open="" close="" separator=",">
+    ( #{item.trackInfoId,jdbcType=INTEGER}, #{item.trackType,jdbcType=INTEGER},
+    #{item.trackDate,jdbcType=TIMESTAMP}, #{item.statusDescription,jdbcType=VARCHAR}, #{item.details,jdbcType=VARCHAR}
+    )
+    </foreach>
+  </insert>
+
+  <insert id="insertSelective" parameterType="com.yks.bigdata.dto.trackmore.TrackInfoDetail" >
+    insert into track_info_detail
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="trackInfoId != null" >
+        track_info_id,
+      </if>
+      <if test="trackType != null" >
+        track_type,
+      </if>
+      <if test="trackDate != null" >
+        track_date,
+      </if>
+      <if test="statusDescription != null" >
+        status_description,
+      </if>
+      <if test="details != null" >
+        details,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="trackInfoId != null" >
+        #{trackInfoId,jdbcType=INTEGER},
+      </if>
+      <if test="trackType != null" >
+        #{trackType,jdbcType=INTEGER},
+      </if>
+      <if test="trackDate != null" >
+        #{trackDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="statusDescription != null" >
+        #{statusDescription,jdbcType=VARCHAR},
+      </if>
+      <if test="details != null" >
+        #{details,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.yks.bigdata.dto.trackmore.TrackInfoDetail" >
+    update track_info_detail
+    <set >
+      <if test="trackInfoId != null" >
+        track_info_id = #{trackInfoId,jdbcType=INTEGER},
+      </if>
+      <if test="trackType != null" >
+        track_type = #{trackType,jdbcType=INTEGER},
+      </if>
+      <if test="trackDate != null" >
+        track_date = #{trackDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="statusDescription != null" >
+        status_description = #{statusDescription,jdbcType=VARCHAR},
+      </if>
+      <if test="details != null" >
+        details = #{details,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.yks.bigdata.dto.trackmore.TrackInfoDetail" >
+    update track_info_detail
+    set track_info_id = #{trackInfoId,jdbcType=INTEGER},
+      track_type = #{trackType,jdbcType=INTEGER},
+      track_date = #{trackDate,jdbcType=TIMESTAMP},
+      status_description = #{statusDescription,jdbcType=VARCHAR},
+      details = #{details,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>

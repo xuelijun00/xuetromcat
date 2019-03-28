@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yks.bigdata.dao.Track_sourceMapper" >
+  <resultMap id="BaseResultMap" type="com.yks.bigdata.dto.trackmore.TrackSource" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="task_id" property="taskId" jdbcType="INTEGER" />
+    <result column="create_at" property="createAt" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <resultMap id="ResultMapWithBLOBs" type="com.yks.bigdata.dto.trackmore.TrackSource" extends="BaseResultMap" >
+    <result column="source" property="source" jdbcType="LONGVARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, task_id, create_at
+  </sql>
+  <sql id="Blob_Column_List" >
+    source
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="ResultMapWithBLOBs" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    ,
+    <include refid="Blob_Column_List" />
+    from track_source
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from track_source
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+
+  <delete id="deleteByTaskId" parameterType="java.lang.Integer" >
+    delete from track_source
+    where task_id = #{taskId,jdbcType=INTEGER}
+  </delete>
+
+  <insert id="insert" parameterType="com.yks.bigdata.dto.trackmore.TrackSource" >
+    insert into track_source (id, task_id, create_at, source)
+    values (#{id,jdbcType=INTEGER}, #{taskId,jdbcType=INTEGER}, #{createAt,jdbcType=TIMESTAMP}, #{source,jdbcType=LONGVARCHAR})
+  </insert>
+
+
+  <insert id="addBatch" parameterType="java.util.List" >
+    insert into track_source (id, task_id, create_at,
+    source)
+    values
+    <foreach collection="list" index="index" item="item" separator=",">
+      (#{item.id,jdbcType=INTEGER}, #{item.taskId,jdbcType=INTEGER}, #{item.createAt,jdbcType=TIMESTAMP},
+      #{item.source,jdbcType=LONGVARCHAR})
+    </foreach>
+
+  </insert>
+
+  <insert id="insertSelective" parameterType="com.yks.bigdata.dto.trackmore.TrackSource" >
+    insert into track_source
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="taskId != null" >
+        task_id,
+      </if>
+      <if test="createAt != null" >
+        create_at,
+      </if>
+      <if test="source != null" >
+        source,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="taskId != null" >
+        #{taskId,jdbcType=INTEGER},
+      </if>
+      <if test="createAt != null" >
+        #{createAt,jdbcType=TIMESTAMP},
+      </if>
+      <if test="source != null" >
+        #{source,jdbcType=LONGVARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.yks.bigdata.dto.trackmore.TrackSource" >
+    update track_source
+    <set >
+      <if test="taskId != null" >
+        task_id = #{taskId,jdbcType=INTEGER},
+      </if>
+      <if test="createAt != null" >
+        create_at = #{createAt,jdbcType=TIMESTAMP},
+      </if>
+      <if test="source != null" >
+        source = #{source,jdbcType=LONGVARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKeyWithBLOBs" parameterType="com.yks.bigdata.dto.trackmore.TrackSource" >
+    update track_source
+    set task_id = #{taskId,jdbcType=INTEGER},
+      create_at = #{createAt,jdbcType=TIMESTAMP},
+      source = #{source,jdbcType=LONGVARCHAR}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.yks.bigdata.dto.trackmore.TrackSource" >
+    update track_source
+    set task_id = #{taskId,jdbcType=INTEGER},
+      create_at = #{createAt,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>

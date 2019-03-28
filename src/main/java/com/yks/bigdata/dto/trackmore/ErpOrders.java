@@ -1,0 +1,409 @@
+package com.yks.bigdata.dto.trackmore;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.yks.bigdata.dto.report.NodeDto;
+
+import java.io.Serializable;
+import java.util.Date;
+import java.util.List;
+
+public class ErpOrders implements Serializable {
+    private Long erpOrdersId;
+    private String erpOrdersId1;//in 查询时
+
+    public String getErpOrdersId1() {
+        return erpOrdersId1;
+    }
+
+    public void setErpOrdersId1(String erpOrdersId1) {
+        this.erpOrdersId1 = erpOrdersId1;
+    }
+
+    private String sku;
+
+    private Short warehouseid;
+
+    private String buyerCity;
+
+    private String buyerState;
+
+    private String buyerCountry;
+
+    private String shippingMethod;
+
+    private String salesAccount;
+
+    private Integer ordersType;
+
+    private Integer ordersStatus;
+
+    @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date ordersExportTime;
+
+    private Float fee;
+
+    private Float heavi;
+
+    private Float size;
+
+    @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date ordersOutTime;
+
+    private String ordersMailCode;
+
+    @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date ordersMailTime;
+
+    private Integer erpPostOffice;
+
+    @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date ordersPrintTime;
+
+    private String ebayCounycode;
+
+    private String freightcode;
+
+
+    private String yksid;
+
+    @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date createTime;
+
+    /**
+     *  '默认为0,\r\n 刚从老erp同步
+     *  1、上网\r\n
+     *  2、封发\r\n
+     *  3、交航\r\n
+     *  4、落地\r\n
+     *  5、妥投'
+     *
+     *  10.未上网
+     *  11 为封发
+     *  12 未交航
+     *  13 未落地
+     *  14 未妥投
+     *
+     */
+    private Integer trackStatus;
+
+    private String startTime;
+    private String endTime;
+
+    private String channelName;
+
+    private String platform;
+
+    @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date internetDate;//上网时间
+    @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date baleDate;//封发时间
+    @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date trafficDate;//交航时间
+    @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date landingDate;//落地时间
+    @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date deliveredDate;//妥投时间
+
+    private String remark;
+    private String country;
+    private Integer exceptionStatus;
+
+    private List<NodeDto> nodeDtos;
+
+    public List<NodeDto> getNodeDtos() {
+        return nodeDtos;
+    }
+
+    public void setNodeDtos(List<NodeDto> nodeDtos) {
+        this.nodeDtos = nodeDtos;
+    }
+
+    public Integer getExceptionStatus() {
+		return exceptionStatus;
+	}
+
+	public void setExceptionStatus(Integer exceptionStatus) {
+		this.exceptionStatus = exceptionStatus;
+	}
+
+	public String getRemark() {
+        return remark;
+    }
+
+    public void setRemark(String remark) {
+        this.remark = remark;
+    }
+
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
+    }
+
+    public Date getInternetDate() {
+        return internetDate;
+    }
+
+    public void setInternetDate(Date internetDate) {
+        this.internetDate = internetDate;
+    }
+
+    public Date getBaleDate() {
+        return baleDate;
+    }
+
+    public void setBaleDate(Date baleDate) {
+        this.baleDate = baleDate;
+    }
+
+    public Date getTrafficDate() {
+        return trafficDate;
+    }
+
+    public void setTrafficDate(Date trafficDate) {
+        this.trafficDate = trafficDate;
+    }
+
+    public Date getLandingDate() {
+        return landingDate;
+    }
+
+    public void setLandingDate(Date landingDate) {
+        this.landingDate = landingDate;
+    }
+
+    public Date getDeliveredDate() {
+        return deliveredDate;
+    }
+
+    public void setDeliveredDate(Date deliveredDate) {
+        this.deliveredDate = deliveredDate;
+    }
+
+    public String getChannelName() {
+        return channelName;
+    }
+
+    public void setChannelName(String channelName) {
+        this.channelName = channelName;
+    }
+
+    public Long getErpOrdersId() {
+        return erpOrdersId;
+    }
+
+    public void setErpOrdersId(Long erpOrdersId) {
+        this.erpOrdersId = erpOrdersId;
+    }
+
+    public String getSku() {
+        return sku;
+    }
+
+    public void setSku(String sku) {
+        this.sku = sku == null ? null : sku.trim();
+    }
+
+    public Short getWarehouseid() {
+        return warehouseid;
+    }
+
+    public void setWarehouseid(Short warehouseid) {
+        this.warehouseid = warehouseid;
+    }
+
+    public String getBuyerCity() {
+        return buyerCity;
+    }
+
+    public void setBuyerCity(String buyerCity) {
+        this.buyerCity = buyerCity == null ? null : buyerCity.trim();
+    }
+
+    public String getBuyerState() {
+        return buyerState;
+    }
+
+    public void setBuyerState(String buyerState) {
+        this.buyerState = buyerState == null ? null : buyerState.trim();
+    }
+
+    public String getBuyerCountry() {
+        return buyerCountry;
+    }
+
+    public void setBuyerCountry(String buyerCountry) {
+        this.buyerCountry = buyerCountry == null ? null : buyerCountry.trim();
+    }
+
+    public String getShippingMethod() {
+        return shippingMethod;
+    }
+
+    public void setShippingMethod(String shippingMethod) {
+        this.shippingMethod = shippingMethod == null ? null : shippingMethod.trim();
+    }
+
+    public String getSalesAccount() {
+        return salesAccount;
+    }
+
+    public void setSalesAccount(String salesAccount) {
+        this.salesAccount = salesAccount == null ? null : salesAccount.trim();
+    }
+
+    public Integer getOrdersType() {
+        return ordersType;
+    }
+
+    public void setOrdersType(Integer ordersType) {
+        this.ordersType = ordersType;
+    }
+
+    public Integer getOrdersStatus() {
+        return ordersStatus;
+    }
+
+    public void setOrdersStatus(Integer ordersStatus) {
+        this.ordersStatus = ordersStatus;
+    }
+
+    public Date getOrdersExportTime() {
+        return ordersExportTime;
+    }
+
+    public void setOrdersExportTime(Date ordersExportTime) {
+        this.ordersExportTime = ordersExportTime;
+    }
+
+    public Float getFee() {
+        return fee;
+    }
+
+    public void setFee(Float fee) {
+        this.fee = fee;
+    }
+
+    public Float getHeavi() {
+        return heavi;
+    }
+
+    public void setHeavi(Float heavi) {
+        this.heavi = heavi;
+    }
+
+    public Float getSize() {
+        return size;
+    }
+
+    public void setSize(Float size) {
+        this.size = size;
+    }
+
+    public Date getOrdersOutTime() {
+        return ordersOutTime;
+    }
+
+    public void setOrdersOutTime(Date ordersOutTime) {
+        this.ordersOutTime = ordersOutTime;
+    }
+
+    public String getOrdersMailCode() {
+        return ordersMailCode;
+    }
+
+    public void setOrdersMailCode(String ordersMailCode) {
+        this.ordersMailCode = ordersMailCode == null ? null : ordersMailCode.trim();
+    }
+
+    public String getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(String startTime) {
+        this.startTime = startTime;
+    }
+
+    public String getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(String endTime) {
+        this.endTime = endTime;
+    }
+
+
+    public Date getOrdersMailTime() {
+        return ordersMailTime;
+    }
+
+    public void setOrdersMailTime(Date ordersMailTime) {
+        this.ordersMailTime = ordersMailTime;
+    }
+
+    public Integer getErpPostOffice() {
+        return erpPostOffice;
+    }
+
+    public void setErpPostOffice(Integer erpPostOffice) {
+        this.erpPostOffice = erpPostOffice;
+    }
+
+    public Date getOrdersPrintTime() {
+        return ordersPrintTime;
+    }
+
+    public void setOrdersPrintTime(Date ordersPrintTime) {
+        this.ordersPrintTime = ordersPrintTime;
+    }
+
+    public String getEbayCounycode() {
+        return ebayCounycode;
+    }
+
+    public void setEbayCounycode(String ebayCounycode) {
+        this.ebayCounycode = ebayCounycode == null ? null : ebayCounycode.trim();
+    }
+
+    public String getFreightcode() {
+        return freightcode;
+    }
+
+    public void setFreightcode(String freightcode) {
+        this.freightcode = freightcode == null ? null : freightcode.trim();
+    }
+
+    public String getYksid() {
+        return yksid;
+    }
+
+    public void setYksid(String yksid) {
+        this.yksid = yksid == null ? null : yksid.trim();
+    }
+
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
+
+    public Integer getTrackStatus() {
+        return trackStatus;
+    }
+
+    public void setTrackStatus(Integer trackStatus) {
+        this.trackStatus = trackStatus;
+    }
+
+    public String getPlatform() {
+        return platform;
+    }
+
+    public void setPlatform(String platform) {
+        this.platform = platform;
+    }
+}

@@ -1,0 +1,109 @@
+.enleter{width:200px;
+    word-wrap:break-word;/* 自动换行遇到字母或数字*/
+    word-break:break-all;/* 英文单词*/
+}
+.znleter{width:200px;}
+.top20{margin-top: 20px;}
+.mbottom{margin-bottom: 10px;}
+.mbottom a{ padding-right: 20px;}
+.form-inline button{margin-top: 5px;}
+.request label{ margin-left: 20px;}
+.request select{ min-width:200px;}
+.request .form-group{margin-bottom: 10px; }
+.required {
+    position: relative;
+}
+.tabled_scroll{max-width: 100%; overflow-x: scroll;margin-bottom: 5px;}
+.table_width{min-width:100%;max-width: 2400px; margin-bottom: 5px;}
+.table_width th{white-space:nowrap; min-width:80px;}
+/*定义滚动条宽高及背景，宽高分别对应横竖滚动条的尺寸*/
+.scrollbar::-webkit-scrollbar{
+    width: 16px;
+    height: 16px;
+    background-color: #f5f5f5;
+    }
+/*定义滚动条的轨道，内阴影及圆角*/
+.scrollbar::-webkit-scrollbar-track{
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
+    border-radius: 10px;
+    background-color: #f5f5f5;
+    }
+/*定义滑块，内阴影及圆角*/
+.scrollbar::-webkit-scrollbar-thumb{
+    /*width: 10px;*/
+    height: 20px;
+    border-radius: 10px;
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
+    background-color: #ddd;
+    }
+
+
+.required:after {
+    position: absolute;
+    top: 5px;
+    display: inline-block;
+    font-size: 17px;
+    color: #ea644a;
+    content: '*';
+}
+.text-important {
+    color: #bd7b46;
+}
+.text-important:hover {
+    color: #996337;
+}
+.text-special {
+    color: #8666b8;
+}
+.text-special:hover {
+    color: #6c4aa1;
+}
+.text-link {
+    color: #353535;
+}
+.text-link:hover,
+.text-link:active {
+    color: #145ccd;
+}
+.text-left {
+    text-align: left;
+}
+.text-right {
+    text-align: right;
+}
+.text-center {
+    text-align: center;
+}
+.text-nowrap,
+.nobr {
+    overflow: hidden;
+    white-space: nowrap;
+}
+.text-ellipsis {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.logo-element img{width: 40px;padding-right:5px; }
+.searchbox{ background-color: #fff;    border-radius: 4px; padding: 0px 15px;    margin:4px 15px;
+}
+.ascending {
+    background-image: url(../img/sort_asc.gif)!important;
+}
+.sorted {
+    background: url(../img/sort_default.gif) right center no-repeat;
+    cursor: pointer;
+    margin-right: 5px;
+    padding: 0px 15px 0px 0px;
+}
+
+.descending {
+    background-image: url(../img/sort_desc.gif);
+}
+.w120 {
+    width: 120px !important;
+}
+.tablecon{ margin:0 auto;}
+.w80 {
+    width: 80px !important;
+}

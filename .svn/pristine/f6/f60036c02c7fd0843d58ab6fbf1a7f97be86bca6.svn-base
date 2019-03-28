@@ -1,0 +1,65 @@
+package com.yks.bigdata.service.trackmore.impl;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.yks.bigdata.dto.trackmore.RequestTask;
+import com.yks.bigdata.service.trackmore.IErpOrdersService;
+import com.yks.bigdata.service.trackmore.IRequestTaskService;
+import com.yks.bigdata.service.trackmore.LoopSearchService;
+import org.apache.commons.lang3.time.DateFormatUtils;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
+
+import java.net.URLEncoder;
+import java.util.Date;
+
+import static org.junit.Assert.*;
+
+/**
+ * Created by liuxing on 2017/7/17.
+ */
+@RunWith(SpringRunner.class)
+@SpringBootTest
+public class LoopSearchServiceNewImplTest {
+
+    @Autowired
+    LoopSearchService loopSearchService;
+
+    @Autowired
+    IErpOrdersService erpOrdersService;
+
+    @Test
+    public void importErpOrders() throws Exception {
+        erpOrdersService.importErpOrders();
+    }
+
+    @Test
+    public void registerTrackmore() throws Exception {
+        loopSearchService.registerTrackmore();
+    }
+
+    @Test
+    public void queryTrackmore() throws Exception {
+        loopSearchService.queryTrackmore();
+    }
+
+    @Autowired
+    Tracker trackerSite;
+    @Autowired
+    IRequestTaskService requestTaskService;
+
+    @Test
+    public void queryTrackmore1() throws Exception {
+        System.out.println(DateFormatUtils.format(new Date(),"yyyy-MM-dd HH:mm:ss"));
+        RequestTask requestTask = requestTaskService.selectByErpOrderId(1126967464083l);
+        String requestData = "{\"tracking_number\":\""+ requestTask.getTrackingNumber() +"\",\"carrier_code\":\""+ requestTask.getCarrierCode() +"\"}";
+        String responseData = trackerSite.queryInfo(requestData, "cf8ef0e0-4995-45b4-aa35-3b410ac2a99e");
+        JSONObject item = JSON.parseObject(responseData).getJSONObject("data").getJSONArray("items").getJSONObject(0);
+        loopSearchService.processTrackmoreJson(item, requestTask);
+        System.out.println(DateFormatUtils.format(new Date(),"yyyy-MM-dd HH:mm:ss"));
+    }
+
+}

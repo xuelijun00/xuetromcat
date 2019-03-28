@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>YKS物流信息状态查询系统</title>
+    <script src="jsLoad/code/load.js?20170116" include="../top.html"></script>
+</head>
+<body class="gray-bg">
+<div class="wrapper wrapper-content">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>订单信息报表</h5>
+                </div>
+                <div class="ibox-content">
+                    <form class="form-inline request">
+                        <div class="form-group">
+                            <label>平台</label>
+                            <select class="chosen-select form-control"
+                                    data-placeholder="请选择" tabindex="-1" name="gly_type"
+                                    data-name-group="common" multiple="multiple">
+                                <option value=""></option>
+                                <option value="">1</option>
+                                <option value="">2</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>国家</label>
+                            <select class="chosen-select form-control"
+                                    data-placeholder="请选择" tabindex="-1" name="gly_info"
+                                    data-name-group="common" multiple="multiple">
+                                <option value=""></option>
+                                <option value="">dgasd</option>
+                                <option value="">dret</option>
+                                <option value="">dgasd</option>
+                                <option value="">dret</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>渠道</label>
+                            <select class="chosen-select form-control"
+                                    data-placeholder="请选择" tabindex="-1" name="gly_info"
+                                    data-name-group="common" multiple="multiple">
+                                <option value=""></option>
+                                <option value="">dgasd</option>
+                                <option value="">dret</option>
+                                <option value="">dgasd</option>
+                                <option value="">dret</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>进入老erp系统日期</label>
+                            <input type="text" class="form-control"  id="start_date">~
+                            <input type="text" class="form-control" id="end_date">
+                        </div>
+                        <div class="clearfix"></div>
+                        <div class="form-group">
+                            <label>订单号</label>
+                            <input type="text" class="form-control" />
+                        </div>
+                        <div class="form-group">
+                            <label>追踪码</label>
+                            <input type="text" class="form-control" />
+                        </div>
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">查询</button>
+                        </div>
+                    </form>
+                    <div class="hr-line-dashed"></div>
+                    <div class="mbottom">
+                        <a href="javascript:;" onclick="tagPublishRule.downloadmoban()">
+                            <i class="fa fa-download"></i>下载csv</a>
+                    </div>
+                    <div class="tabled_scroll scrollbar">
+                    <table class="table table-striped table-bordered table-hover table_width">
+                        <thead>
+                        <tr>
+                            <th>序号</th>
+                            <th>订单号-内</th>
+                            <th>发货仓库</th>
+                            <th>买家城市</th>
+                            <th>买家州</th>
+                            <th>买家国家</th>
+                            <th>运输方式</th>
+                            <th>销售账号</th>
+                            <th>订单类型</th>
+                            <th>订单状态</th>
+                            <th>进老erp时间</th>
+                            <th>实际运费</th>
+                            <th>发货重量</th>
+                            <th>发货时间</th>
+                            <th>追踪号2AP获取</th>
+                            <th>获取追踪码时间</th>
+                            <th>发货方式</th>
+                            <th>订单打印时间</th>
+                            <th>国家简称</th>
+                            <th>渠道编码</th>
+                            <th>物流优选系统yksid</th>
+                            <th>数据抓取时间</th>
+                            <th>注册状态</th>
+                            <th>注册时间</th>
+                            <th>物流信息请求状态</th>
+                            <th>信息更新时间</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>bluesdf</td>
+                            <td>hd,GoPro</td>
+                            <td>纽约</td>
+                            <td>150</td>
+                            <td>1</td>
+                            <td>bluesdf</td>
+                            <td>hd,GoPro</td>
+                            <td>已发货</td>
+                            <td>150</td>
+                            <td>1</td>
+                            <td>bluesdf</td>
+                            <td>hd,GoPro</td>
+                            <td>2017-02-20 16:27:50</td>
+                            <td>150</td>
+                            <td>1</td>
+                            <td>bluesdf</td>
+                            <td>hd,GoPro</td>
+                            <td>EN</td>
+                            <td>150</td>
+                            <td>150</td>
+                            <td>1</td>
+                            <td>bluesdf</td>
+                            <td>hd,GoPro</td>
+                            <td>2017-02-20 16:27:50</td>
+                            <td>150</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 pull-left top20">
+                            <label>每页 <select class="input-sm">
+                                <option value="10">10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option></select> 条记录
+                                显示 1 到 10 项，共 57项</label>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="pagination pull-right">
+                                <li class="previous"><a href="../your/nice/url">上一页</a></li>
+                                <li><a href="../your/nice/url">1</a></li>
+                                <li class="active"><a href="../your/nice/url">2</a></li>
+                                <li><a href="../your/nice/url">3</a></li>
+                                <li><a href="../your/nice/url">4</a></li>
+                                <li><a href="../your/nice/url">5</a></li>
+                                <li class="next"><a href="../your/nice/url">下一页</a></li>
+                            </ul>
+                        </div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+<script src="jsLoad/code/load.js?20170116" include="../js.html"></script>
+<!--加本页面 的js文件与js代码-->
+<script src="js/chosen.js"></script>
+<script src="js/layerdiv.js"></script>
+<script>
+    jeDate({
+        dateCell:"#start_date",
+        format:"YYYY-MM-DD",
+        //isinitVal:true,
+        //isTime:true, //isClear:false,
+        minDate:"2014-09-19 00:00:00"
+    });
+    jeDate({
+        dateCell:"#end_date",
+        format:"YYYY-MM-DD",
+        //isinitVal:true,
+        //isTime:true, //isClear:false,
+        minDate:"2014-09-19 00:00:00"
+    });
+</script>
+</body>
+</html>

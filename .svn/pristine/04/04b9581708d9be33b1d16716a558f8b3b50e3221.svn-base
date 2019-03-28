@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <title>YKS物流信息状态查询系统</title>
+    <script th:src="@{/jsLoad/code/load.js}" src="jsLoad/code/load.js" include="../top.html"></script>
+</head>
+<body class="gray-bg">
+<div class="wrapper wrapper-content">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>track more账号报表</h5>
+                </div>
+                <div class="ibox-content">
+                    <form class="form-inline request" method="get" th:action="@{/account/view1}" id="accountForm">
+                        <div class="form-group">
+                            <label>账号</label>
+                            <select class="chosen-select form-control"
+                                    data-placeholder="请选择" tabindex="-1" name="key"
+                                    data-name-group="common" >
+                                <div th:each="account,accountState:${accounts}">
+                                    <option value="" th:value="${account.apiKey}" th:text="${account.account}" th:selected="(${account.apiKey} == ${key})"></option>
+                                </div>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>请求订单号</label>
+                            <textarea type="text" class="form-control"  name ="erpOrderIds" th:text="${erpOrderIds}"/>
+                        </div>
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">查询</button>
+                        </div>
+                    </form>
+                    <div th:text="${responseData}"></div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script th:src="@{/jsLoad/code/load.js}" src="jsLoad/code/load.js" include="../js.html"></script>
+<!--加本页面 的js文件与js代码-->
+<script th:inline="javascript" th:src="@{/js/chosen.js}" ></script>
+<script th:inline="javascript" th:src="@{/js/trackmore/common.js}" ></script>
+
+
+</body>
+</html>

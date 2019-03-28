@@ -1,0 +1,67 @@
+package com.yks.bigdata.service.scheduled;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.yks.bigdata.dto.trackmore.RequestTask;
+import com.yks.bigdata.service.trackmore.IRequestTaskService;
+import com.yks.bigdata.service.trackmore.LoopSearchService;
+import com.yks.bigdata.service.trackmore.impl.CalculaImpl;
+import com.yks.bigdata.service.trackmore.impl.ErpOrdersServiceImpl;
+import com.yks.bigdata.service.trackmore.impl.LoopSearchServiceNewImpl;
+import com.yks.bigdata.service.trackmore.impl.Tracker;
+import org.apache.commons.lang3.time.DateFormatUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
+import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Future;
+
+/**
+ * Created by liuxing on 2017/10/20.
+ */
+@Component
+public class AsyncTask {
+
+    private static Logger log = LoggerFactory.getLogger(ErpOrdersServiceImpl.class);
+
+    @Autowired
+    Tracker trackerSite;
+    @Autowired
+    IRequestTaskService requestTaskService;
+    @Autowired
+    LoopSearchServiceNewImpl loopSearchServiceNew;
+
+    @Async
+    public Future<String> doTask(List<Long> erpOrdersIds, String key){
+        long start = System.currentTimeMillis();
+        List<String> list = new ArrayList<>();
+        StringBuffer stringBuffer = new StringBuffer();
+        for (int i=0;i<erpOrdersIds.size();i++) {
+            if(i%40 == 0 && stringBuffer.length() > 0){
+                list.add(stringBuffer.deleteCharAt(stringBuffer.length() - 1).toString());
+                stringBuffer = new StringBuffer();
+            }
+            stringBuffer.append(erpOrdersIds.get(i)).append(",");
+        }
+        if(stringBuffer.length() > 0)
+            list.add(stringBuffer.deleteCharAt(stringBuffer.length() - 1).toString());
+
+        for(int i=0;i<list.size();i++){
+            try{
+                List<RequestTask> tasks = requestTaskService.selectByErpOrderIdBatch(list.get(i));
+                loopSearchServiceNew.queryTrackmore40(tasks, key);
+            }catch (Exception ex){
+                ex.printStackTrace();
+                log.error(ex.getLocalizedMessage());
+            }
+        }
+        long end = System.currentTimeMillis();
+        return new AsyncResult<>("请求订单数：" + erpOrdersIds.size() + " 耗时：" +  (end - start) + "毫秒");
+    }
+
+}

@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yks.bigdata.dao.YksAccountMapper" >
+  <resultMap id="BaseResultMap" type="com.yks.bigdata.dto.trackmore.YksAccount" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="platform" property="platform" jdbcType="VARCHAR" />
+    <result column="account" property="account" jdbcType="VARCHAR" />
+    <result column="manager" property="manager" jdbcType="VARCHAR" />
+    <result column="ebayfinalvaluetype" property="ebayfinalvaluetype" jdbcType="VARCHAR" />
+    <result column="zhandian" property="zhandian" jdbcType="VARCHAR" />
+    <result column="groupleader" property="groupleader" jdbcType="VARCHAR" />
+    <result column="addtime" property="addtime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, platform, account, manager, ebayfinalvaluetype, zhandian, groupleader, addtime
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from yks_account
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+
+  <select id="selectByAccount" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    select
+    <include refid="Base_Column_List" />
+    from yks_account
+    where account = #{account,jdbcType=VARCHAR}
+  </select>
+
+  <select id="selectYksAccounts" resultMap="BaseResultMap" >
+    select
+    <include refid="Base_Column_List" />
+    from yks_account
+  </select>
+
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from yks_account
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+
+  <select id="deleteData"  >
+      truncate table yks_account;
+  </select>
+  <insert id="insert" parameterType="com.yks.bigdata.dto.trackmore.YksAccount" >
+    insert into yks_account (id, platform, account, manager, ebayfinalvaluetype, zhandian,groupleader, addtime)
+    values (#{id,jdbcType=INTEGER}, #{platform,jdbcType=VARCHAR}, #{account,jdbcType=VARCHAR}, 
+      #{manager,jdbcType=VARCHAR}, #{ebayfinalvaluetype,jdbcType=VARCHAR}, #{zhandian,jdbcType=VARCHAR}, 
+      #{groupleader,jdbcType=VARCHAR}, #{addtime,jdbcType=TIMESTAMP})
+  </insert>
+  
+  <insert id="insertBatch" parameterType="list">
+    insert into yks_account ( platform, account, manager, ebayfinalvaluetype, zhandian,groupleader)
+    VALUES
+    <foreach collection="list" index="index" item="item" separator=",">
+      ( #{item.platform,jdbcType=VARCHAR}, #{item.account,jdbcType=VARCHAR},#{item.manager,jdbcType=VARCHAR}, #{item.ebayfinalvaluetype,jdbcType=VARCHAR}, #{item.zhandian,jdbcType=VARCHAR} , #{item.groupleader,jdbcType=VARCHAR})
+    </foreach>
+  </insert>
+  
+  <insert id="insertSelective" parameterType="com.yks.bigdata.dto.trackmore.YksAccount" >
+    insert into yks_account
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="platform != null" >
+        platform,
+      </if>
+      <if test="account != null" >
+        account,
+      </if>
+      <if test="manager != null" >
+        manager,
+      </if>
+      <if test="ebayfinalvaluetype != null" >
+        ebayfinalvaluetype,
+      </if>
+      <if test="zhandian != null" >
+        zhandian,
+      </if>
+      <if test="groupleader != null" >
+        groupleader,
+      </if>
+      <if test="addtime != null" >
+        addtime,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="platform != null" >
+        #{platform,jdbcType=VARCHAR},
+      </if>
+      <if test="account != null" >
+        #{account,jdbcType=VARCHAR},
+      </if>
+      <if test="manager != null" >
+        #{manager,jdbcType=VARCHAR},
+      </if>
+      <if test="ebayfinalvaluetype != null" >
+        #{ebayfinalvaluetype,jdbcType=VARCHAR},
+      </if>
+      <if test="zhandian != null" >
+        #{zhandian,jdbcType=VARCHAR},
+      </if>
+      <if test="groupleader != null" >
+        #{groupleader,jdbcType=VARCHAR},
+      </if>
+      <if test="addtime != null" >
+        #{addtime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.yks.bigdata.dto.trackmore.YksAccount" >
+    update yks_account
+    <set >
+      <if test="platform != null" >
+        platform = #{platform,jdbcType=VARCHAR},
+      </if>
+      <if test="account != null" >
+        account = #{account,jdbcType=VARCHAR},
+      </if>
+      <if test="manager != null" >
+        manager = #{manager,jdbcType=VARCHAR},
+      </if>
+      <if test="ebayfinalvaluetype != null" >
+        ebayfinalvaluetype = #{ebayfinalvaluetype,jdbcType=VARCHAR},
+      </if>
+      <if test="zhandian != null" >
+        zhandian = #{zhandian,jdbcType=VARCHAR},
+      </if>
+      <if test="groupleader != null" >
+        groupleader = #{groupleader,jdbcType=VARCHAR},
+      </if>
+      <if test="addtime != null" >
+        addtime = #{addtime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.yks.bigdata.dto.trackmore.YksAccount" >
+    update yks_account
+    set platform = #{platform,jdbcType=VARCHAR},
+      account = #{account,jdbcType=VARCHAR},
+      manager = #{manager,jdbcType=VARCHAR},
+      ebayfinalvaluetype = #{ebayfinalvaluetype,jdbcType=VARCHAR},
+      zhandian = #{zhandian,jdbcType=VARCHAR},
+      groupleader = #{groupleader,jdbcType=VARCHAR},
+      addtime = #{addtime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>

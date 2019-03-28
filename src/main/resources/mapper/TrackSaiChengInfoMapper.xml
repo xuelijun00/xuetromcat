@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yks.bigdata.dao.TrackSaiChengInfoMapper">
+  <resultMap id="BaseResultMap" type="com.yks.bigdata.dto.trackmore.TrackSaiChengInfo">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="orderNo" jdbcType="VARCHAR" property="orderno" />
+    <result column="tracking_number" jdbcType="VARCHAR" property="trackingNumber" />
+    <result column="status" jdbcType="VARCHAR" property="status" />
+    <result column="product_type" jdbcType="VARCHAR" property="productType" />
+    <result column="date" jdbcType="TIMESTAMP" property="date" />
+    <result column="description" jdbcType="VARCHAR" property="description" />
+    <result column="location" jdbcType="VARCHAR" property="location" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, orderNo, tracking_number, status, product_type, date, description, location, 
+    create_time
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from track_saicheng_info
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from track_saicheng_info
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+
+
+  <delete id="deleteByTrackNum" parameterType="java.lang.String" >
+    delete from track_saicheng_info
+    where tracking_number = #{trackingNumber,jdbcType=VARCHAR}
+  </delete>
+
+  <insert id="addBatch" parameterType="java.util.List" >
+    insert into track_saicheng_info ( orderNo, tracking_number, status, product_type, date, description, location,create_time)
+    values
+    <foreach collection="list" index="index" item="item" open="" close="" separator=",">
+      (#{item.orderno,jdbcType=VARCHAR}, #{item.trackingNumber,jdbcType=VARCHAR},
+      #{item.status,jdbcType=VARCHAR}, #{item.productType,jdbcType=VARCHAR}, #{item.date,jdbcType=VARCHAR},
+      #{item.description,jdbcType=VARCHAR}, #{item.location,jdbcType=VARCHAR}, #{item.createTime,jdbcType=TIMESTAMP})
+    </foreach>
+  </insert>
+
+  <insert id="insert" parameterType="com.yks.bigdata.dto.trackmore.TrackSaiChengInfo">
+    insert into track_saicheng_info (id, orderNo, tracking_number, 
+      status, product_type, date, 
+      description, location, create_time
+      )
+    values (#{id,jdbcType=INTEGER}, #{orderno,jdbcType=VARCHAR}, #{trackingNumber,jdbcType=VARCHAR}, 
+      #{status,jdbcType=VARCHAR}, #{productType,jdbcType=VARCHAR}, #{date,jdbcType=TIMESTAMP}, 
+      #{description,jdbcType=VARCHAR}, #{location,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.yks.bigdata.dto.trackmore.TrackSaiChengInfo">
+    insert into track_saicheng_info
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="orderno != null">
+        orderNo,
+      </if>
+      <if test="trackingNumber != null">
+        tracking_number,
+      </if>
+      <if test="status != null">
+        status,
+      </if>
+      <if test="productType != null">
+        product_type,
+      </if>
+      <if test="date != null">
+        date,
+      </if>
+      <if test="description != null">
+        description,
+      </if>
+      <if test="location != null">
+        location,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="orderno != null">
+        #{orderno,jdbcType=VARCHAR},
+      </if>
+      <if test="trackingNumber != null">
+        #{trackingNumber,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null">
+        #{status,jdbcType=VARCHAR},
+      </if>
+      <if test="productType != null">
+        #{productType,jdbcType=VARCHAR},
+      </if>
+      <if test="date != null">
+        #{date,jdbcType=TIMESTAMP},
+      </if>
+      <if test="description != null">
+        #{description,jdbcType=VARCHAR},
+      </if>
+      <if test="location != null">
+        #{location,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.yks.bigdata.dto.trackmore.TrackSaiChengInfo">
+    update track_saicheng_info
+    <set>
+      <if test="orderno != null">
+        orderNo = #{orderno,jdbcType=VARCHAR},
+      </if>
+      <if test="trackingNumber != null">
+        tracking_number = #{trackingNumber,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null">
+        status = #{status,jdbcType=VARCHAR},
+      </if>
+      <if test="productType != null">
+        product_type = #{productType,jdbcType=VARCHAR},
+      </if>
+      <if test="date != null">
+        date = #{date,jdbcType=TIMESTAMP},
+      </if>
+      <if test="description != null">
+        description = #{description,jdbcType=VARCHAR},
+      </if>
+      <if test="location != null">
+        location = #{location,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.yks.bigdata.dto.trackmore.TrackSaiChengInfo">
+    update track_saicheng_info
+    set orderNo = #{orderno,jdbcType=VARCHAR},
+      tracking_number = #{trackingNumber,jdbcType=VARCHAR},
+      status = #{status,jdbcType=VARCHAR},
+      product_type = #{productType,jdbcType=VARCHAR},
+      date = #{date,jdbcType=TIMESTAMP},
+      description = #{description,jdbcType=VARCHAR},
+      location = #{location,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>

@@ -1,0 +1,358 @@
+package com.yks.bigdata.service.trackmore.impl;
+
+import com.yks.bigdata.dao.Erp_ordersMapper;
+import com.yks.bigdata.dao.Logistics_pickupMapper;
+import com.yks.bigdata.dto.trackmore.ErpOrders;
+import com.yks.bigdata.dto.trackmore.LogisticsPickup;
+import com.yks.bigdata.dto.trackmore.RequestTask;
+import com.yks.bigdata.service.trackmore.IErpOrdersService;
+import com.yks.bigdata.service.trackmore.ILogisticsPickupService;
+import com.yks.bigdata.util.DateUtils;
+import com.yks.bigdata.util.ExecutorsUtils;
+import com.yks.bigdata.vo.UpdateErpOrderVo;
+import com.yks.bigdata.vo.UpdatePickUp;
+import com.yks.bigdata.web.vo.MessageVo;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+
+/**
+ * Created by zh on 2017/6/30.
+ */
+@Service
+public class LogisticsPickupServiceImpl implements ILogisticsPickupService {
+
+    private static Logger log = LoggerFactory.getLogger(LogisticsPickupServiceImpl.class);
+
+    @Autowired
+    Logistics_pickupMapper pickupMapper;
+
+    @Autowired
+    Erp_ordersMapper ordersMapper;
+
+    @Autowired
+    IErpOrdersService ordersService;
+
+    /**
+     * 批量捡货数据录入
+     *
+     * @param pickupList
+     */
+    public MessageVo insertBatch(List<LogisticsPickup> pickupList) {
+        if (pickupList.size() == 0) {
+            log.error("pickupList size为0");
+            return new MessageVo(400, "拣货csv文件内容为空!");
+        }
+
+        //检查合法性
+        try {
+            MessageVo messageVo = checkIllegal(pickupList);
+            if (messageVo != null)
+                return messageVo;
+        } catch (Exception e) {
+            log.error("执行sql异常", e);
+            return new MessageVo(400, "sql异常");
+        }
+
+        List<List<LogisticsPickup>> splitPickupLists = splitOrders(pickupList);
+        for (List<LogisticsPickup> splitPickupList : splitPickupLists) {
+            insertBath1000(splitPickupList);
+        }
+        return new MessageVo(200, "录入成功!");
+    }
+
+
+    /**
+     * 模糊查询
+     * 分页
+     *
+     * @param pickup
+     * @return
+     */
+    @Override
+    public List<LogisticsPickup> selectLogisticsPickup(LogisticsPickup pickup) {
+        return pickupMapper.selectLogisticsPickup(pickup);
+    }
+
+    @Override
+    public void updatePickupToAggred(String orderId) {
+        pickupMapper.updatePickupToAggred(orderId);
+    }
+
+    @Override
+    public void updatePickupToAggredBatch(List<String> orderIds) {
+        pickupMapper.updatePickupToAggredBatch(orderIds);
+    }
+
+    /**
+     * pickup表中register_status更新为1 ,新增 register_time
+     *
+     * @param registerTasks
+     */
+    @Override
+    public void updateStatusRegistered(List<RequestTask> registerTasks) {
+        List<String> erpOrderIds = mkErpOrdersId(registerTasks);
+        UpdatePickUp updatePickUp = new UpdatePickUp(DateUtils.getCurrentDateStr(), erpOrderIds);
+        pickupMapper.updateStatusRegistered(updatePickUp);
+    }
+
+    private List<String> mkErpOrdersId(List<RequestTask> registerTasks) {
+        ArrayList<String> erpOrderIds = new ArrayList<>();
+        for (RequestTask task : registerTasks) {
+            erpOrderIds.add(String.valueOf(task.getErpOrdersId()));
+        }
+        return erpOrderIds;
+    }
+
+    /**
+     * 检查数据是否合法
+     *
+     * @param pickupList
+     * @return
+     */
+    private MessageVo checkIllegal(List<LogisticsPickup> pickupList) throws Exception {
+        //1.检查order_id在erp_orders表中是否存在
+        //2.检查数据在pickup表中是否已经存在,避免重复导数据
+
+        ArrayList<String> idsList = new ArrayList<String>();
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < pickupList.size(); i++) {
+            String orderId = pickupList.get(i).getOrderId();
+            if (StringUtils.isEmpty(orderId)) {
+                return new MessageVo(400, "上传 拣货csv文件中的orderId为null");
+            }
+            String channelName = pickupList.get(i).getChannelName();
+            if (StringUtils.isEmpty(channelName)) {
+                return new MessageVo(400, "上传 拣货csv文件中的渠道名称为null");
+            }
+            String trackNumber = pickupList.get(i).getTrackNumber();
+            if (StringUtils.isEmpty(trackNumber)) {
+                return new MessageVo(400, "上传 拣货csv文件中的物流追踪号为null");
+            }
+
+            sb.append(orderId).append(",");
+            if (i % 100 == 0 && i != 0) {
+                idsList.add(sb.toString());
+                sb = new StringBuilder();
+            }
+        }
+        if (StringUtils.isNotEmpty(sb.toString())) {
+            idsList.add(sb.toString());
+        }
+        //开启线程进行检测这堆ids
+        ExecutorService es = ExecutorsUtils.getExecutors();
+
+        Collection tasks = new ArrayList();
+        for (String ids : idsList) {
+            tasks.add(new Check(ordersService, pickupMapper, ids));
+        }
+        List<Future<MessageVo>> resultList = (List<Future<MessageVo>>) es.invokeAll(tasks);
+        return processMessageVo(resultList);
+    }
+
+    private MessageVo processMessageVo(List<Future<MessageVo>> resultList) throws Exception {
+        StringBuilder sb = new StringBuilder();
+        for (Future<MessageVo> f : resultList) {
+            MessageVo vo = f.get();
+            if (vo != null)
+                sb.append(vo.getMessage()).append("\n");
+        }
+
+        if (StringUtils.isNotEmpty(sb.toString())) {
+            if (sb.toString().length() > 300) {
+                return new MessageVo(400, sb.toString().substring(0, 400) + " ......");
+            } else
+                return new MessageVo(400, sb.toString());
+        }
+        return null;
+    }
+
+
+    /**
+     * 1000条记录提交一回
+     *
+     * @param pickupList
+     */
+    @Transactional(value = "transactionManager")
+    private void insertBath1000(List<LogisticsPickup> pickupList) {
+        log.info("插入pickup数据1000条");
+        pickupMapper.addBatch(pickupList);
+        ArrayList<UpdateErpOrderVo> vos = new ArrayList<>();
+
+        // TODO: 2017/7/8 更新erp_orders表中的物流渠道信息
+        //ordersMapper.updateBatch(vos);
+    }
+
+    /**
+     * 数据拆分
+     *
+     * @param list
+     * @return
+     */
+    private List<List<LogisticsPickup>> splitOrders(List<LogisticsPickup> list) {
+        if (list == null || list.size() == 0) {
+            return null;
+        }
+        ArrayList<List<LogisticsPickup>> result = new ArrayList<List<LogisticsPickup>>();
+        int size = list.size();
+        ArrayList<LogisticsPickup> ordersList = new ArrayList<LogisticsPickup>();
+        for (int i = 0; i < size; i++) {
+            LogisticsPickup pickup = list.get(i);
+            pickup.setCreateTime(new Date());
+            ordersList.add(pickup);
+            //满1000个使用另外一个ordersList
+            if (ordersList.size() == 1000) {
+                result.add(ordersList);
+                ordersList = new ArrayList<LogisticsPickup>();
+            }
+        }
+        if (ordersList.size() != 0) {
+            result.add(ordersList);
+        }
+        return result;
+    }
+
+
+}
+
+class Check implements Callable<MessageVo> {
+    private static Logger log = LoggerFactory.getLogger(Check.class);
+    IErpOrdersService ordersService;
+    Logistics_pickupMapper pickupMapper;
+    String ids;
+
+    public Check(IErpOrdersService ordersService, Logistics_pickupMapper pickupMapper, String ids) {
+        this.ordersService = ordersService;
+        this.pickupMapper = pickupMapper;
+        this.ids = ids;
+    }
+
+    /**
+     * Computes a result, or throws an exception if unable to do so.
+     *
+     * @return computed result
+     * @throws Exception if unable to compute a result
+     */
+    @Override
+    public MessageVo call() throws Exception {
+        log.info("check线程开启 " + Thread.currentThread().getName());
+        MessageVo messageVo = checkOrders(ids);
+        log.info("check线程结束 " + Thread.currentThread().getName());
+        return messageVo;
+    }
+
+    /**
+     * //1.检查order_id在erp_orders表中是否存在
+     * //2.检查数据在pickup表中是否已经存在,避免重复导数据
+     *
+     * @return
+     * @throws Exception
+     */
+    private MessageVo checkOrders(String s) throws Exception {
+        String str = s.substring(0, (s.length() - 1));
+        // 0.1检查 录入order_id是否就是有重复
+        MessageVo messageVo3 = findRepeatOrderId(str);
+        if (messageVo3 != null) {
+            return messageVo3;
+        }
+
+        //1.检查order_id在erp_orders表中是否存在
+        List<ErpOrders> orderses = ordersService.existsOrders(str);
+        MessageVo messageVo = findErrorErpOrdersIdOnErpOrders(s, orderses);
+        if (messageVo != null) {
+            return messageVo;
+        }
+
+        //2.检查数据在pickup表中是否已经存在,避免重复导数据
+        String[] ids = str.split(",");
+        List<LogisticsPickup> pickupList = pickupMapper.existsPickUp(Arrays.asList(ids));
+        MessageVo messageVo2 = findErrorErpOrdersIdOnPickUp(str, pickupList);
+        if (messageVo2 != null) {
+            return messageVo2;
+        }
+        return null;
+    }
+
+    private MessageVo findRepeatOrderId(String ids) {
+        String[] idsArray = ids.split(",");
+        HashSet<String> set = new HashSet<>();
+        for (int i = 0; i < idsArray.length; i++) {
+            set.add(idsArray[i]);
+            if ((set.size() - 1) < i) {
+                return new MessageVo(400, "拣货csv文件中的内单号重复: " + idsArray[i]);
+            }
+        }
+        return null;
+    }
+
+    private MessageVo findErrorErpOrdersIdOnPickUp(String ids, List<LogisticsPickup> orders) {
+
+        List<Long> ids1 = getIds(ids);
+        List<Long> ids2 = getIdsPickup(orders);
+
+        ids1.retainAll(ids2);
+        if (ids1.size() > 0) {
+            return new MessageVo(400, "数据 在数据库中已经录入,请不要重复录入数据, 重复内单号为 : " + mkString(ids1));
+        }
+        return null;
+
+    }
+
+    private List<Long> getIdsPickup(List<LogisticsPickup> orders) {
+        ArrayList<Long> idsList = new ArrayList<>();
+        for (LogisticsPickup order : orders) {
+            idsList.add(Long.parseLong(order.getOrderId()));
+        }
+        return idsList;
+    }
+
+
+    private MessageVo findErrorErpOrdersIdOnErpOrders(String ids, List<ErpOrders> orders) {
+
+        List<Long> ids1 = getIds(ids);
+        List<Long> ids2 = getIds(orders);
+
+        ids1.removeAll(ids2);
+        if (ids1.size() > 0) {
+            return new MessageVo(400, "数据 erp_orders_id在老erp不存在 ,erp_irders_id : " + mkString(ids1));
+        }
+        return null;
+
+    }
+
+    private String mkString(List<Long> ids) {
+        StringBuilder sb = new StringBuilder();
+        for (Long id : ids) {
+            sb.append(id).append(",");
+        }
+        return sb.toString();
+    }
+
+    private List<Long> getIds(List<ErpOrders> orders) {
+        ArrayList<Long> idsList = new ArrayList<>();
+        for (ErpOrders order : orders) {
+            idsList.add(order.getErpOrdersId());
+        }
+        return idsList;
+    }
+
+
+    private List<Long> getIds(String ids) {
+        String[] idsArray = ids.split(",");
+        ArrayList<Long> idsList = new ArrayList<>();
+        for (String id : idsArray) {
+            idsList.add(Long.parseLong(id));
+        }
+        return idsList;
+    }
+
+
+}

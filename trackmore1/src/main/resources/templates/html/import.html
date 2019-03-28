@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>YKSUI框架 - 需求管理</title>
+    <script src="jsLoad/code/load.js?20170116" include="../top.html"></script>
+    <!--加css-->
+</head>
+<body class="gray-bg">
+<div class="wrapper wrapper-content">
+    <div class="panel-body">
+       <div class="alert alert-info" role="alert"> 
+            <p>模板下载: <a href="/userInterface/uploads/template-2016-03-21.xls">小包模板</a>（New 2015-7-1）
+            </p>
+       </div>
+          <!-- Form starts.  -->
+        <form action="" enctype="multipart/form-data" class="form-horizontal" role="form" method="post">
+            <div class="form-group">
+                <label class="col-md-1 control-label">运输方式：</label>
+                <div class="col-md-4">
+                    <select name="shippingType" class="form-control" data-placeholder="请选择..." data-val="true" 
+                    data-val-number="The field ShippingMethodId must be a number." data-val-required="请选择[运输方式]" 
+                    id="ShippingMethodId">
+                        <option value="">--选择运输方式--</option>
+                        <option value="2">笨鸟国际挂号小包</option>
+                        <option value="14">FBA欧洲专线</option>
+                        <option value="19">台湾邮政平邮</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-md-1 control-label">上传文件:</label>
+                <div class="col-md-4"> <input name="import_file" class="form-control" data-val="true" 
+                data-val-required="请选择[上传文件]!" id="File" value="" type="file"></div>
+               <div class="col-md-2"> <button id="submit-button" type="button" class="btn btn-info">上传</button>
+            </div>
+        </form>
+    </div>
+</div>
+<script src="jsLoad/code/load.js?20170116" include="../js.html"></script>
+<!--加本页面 的js文件与js代码-->
+<script src="js/chosen.js"></script>
+</body>
+</html>

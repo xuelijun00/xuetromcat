@@ -1,0 +1,155 @@
+var pickUpManagement = {
+     downloadCsv:function(){
+            $.ajax({
+                url: "get",
+                cache: false,
+                type: "GET",
+                //async: false,
+                data: {
+                    page: 0,
+                    rows: 0,
+                    orderId:$("input[name='orderId']").val(),
+                    paramBegin:$("input[name='paramBegin']").val(),
+                    paramEnd:$("input[name='paramEnd']").val()
+                },
+                success: function (data) {
+                    if (data) {
+                        var fileName = "物流取件报表.csv";
+                        var dataArr = data.rows;
+                        var title=["订单号内","物流渠道编码","渠道名称","创建时间","	注册状态","	注册时间","物流信息请求状态","信息更新时间"];
+                        var column=["orderId","channelCode","channelName","createTime","registerStatus","registerTime","status","updateTime"];
+                        exportDataToCSV(fileName,dataArr,title,column);
+                    }
+                }
+            });
+        },
+        aggration:function(){
+         $("#pickup_aggregation").hide();
+             $.ajax({
+                url: "aggration",
+                cache: false,
+                type: "GET",
+                success: function (data) {
+                    $("#pickup_aggregation").show();
+                    common.showMessage(200,"聚合成功!");
+                }
+            });
+        },
+             showUpload:function(){
+                 var content = '<div class="panel-body">'+
+                     '<div class="alert alert-info" role="alert">'+
+                         '<p>模板下载: <a href="../excel/pickup_template.csv">模板</a></p>'+
+                         '<p>由于数据量大,需要耐心等待!</p>'+
+                     '</div>'+
+                     '<form action="" enctype="multipart/form-data" class="form-horizontal" role="form" method="post">'+
+                     '<div class="form-group">'+
+                         '<label class="col-sm-3 control-label">上传文件：</label>'+
+                         '<div class="col-sm-7">'+
+                             '<input name="file" class="layui-upload-file form-control" data-val="true" data-val-required="请选择[上传文件]!" id="File" value="" type="file" />'+
+                         '</div>'+
+                     '</div>'+
+                     '</form>'+
+                     '</div><script>pickUpManagement.upload()</script>';
+                 layer.open({
+                     type: 1,
+                     title: '上传拣货csv',
+                     maxmin: false,
+                     shadeClose: false, //点击遮罩关闭层
+                     area: ['560px', '350px'],
+                     content: content,
+                 });
+             },
+             upload:function(){
+                 layui.use('upload', function(){
+                     layui.upload({
+                         url: 'upload'
+                         ,ext: 'csv' //那么，就只会支持这种格式的上传。注意是用|分割。
+                         ,type: 'file'
+                         ,unwrap: false
+                         ,title: '请上传文件'
+                         ,method:'post'
+                         ,success: function(res, input){
+                             if(res.status == 200){
+                                 //layer.msg(res.message, {time: 3000});
+                                 common.showMessage(res.status,res.message);
+                             }else{
+                                 common.showMessage(res.status,res.message);
+                             }
+                         }
+                     });
+                 });
+             }
+};
+
+$("#paramBegin").jeDate({
+    format: "YYYY-MM-DD",
+    //isinitVal:true,
+    //isTime:true, //isClear:false,
+    minDate: "2014-09-19 00:00:00"
+});
+$("#paramEnd").jeDate({
+    format: "YYYY-MM-DD",
+    //isinitVal:true,
+    //isTime:true, //isClear:false,
+    minDate: "2014-09-19 00:00:00"
+});
+
+layui.use(['laypage', 'layer'], function(){
+    var laypage = layui.laypage;
+    laypage({
+        cont: 'page'
+        ,pages: parseInt($("#pagetotal").val()?$("#pagetotal").val():1) //总页数
+        ,groups: 5 //连续显示分页数
+        ,skip: true
+        ,jump: function(obj, first){
+            //得到了当前页，用于向服务端请求对应数据
+            var page = obj.curr;
+            var rows = 10;
+            $.getJSON('get', {
+                page: page,
+                rows: rows,
+                orderId:$("input[name='orderId']").val(),
+                paramBegin:$("input[name='paramBegin']").val(),
+                paramEnd:$("input[name='paramEnd']").val()
+            }, function (data) {
+                $("table tbody").empty();
+                var trs;
+                $.each(data.rows,function(index,item){
+                    var st = "";
+                    if(item.status==0){
+                        st = "未聚合";
+                    }else if(item.status==1){
+                        st="已聚合";
+                    }else if(item.status==2){
+                        st="未请求";
+                    }else if(item.status==3){
+                        st="请求成功";
+                    }else if(item.status==4){
+                        st="请求失败";
+                    }else{
+                        st=item.status;
+                    }
+                    var tr = '<tr>'+
+                        '<td>'+ (index + 1) +'</td>'+
+                        '<td>'+ item.orderId +'</td>'+
+                        '<td>'+ item.channelCode +'</td>'+
+                        '<td>'+ item.channelName +'</td>'+
+                        '<td>'+ item.createTime +'</td>'+
+                        '<td>'+ item.registerStatus +'</td>'+
+                        '<td>'+ item.registerTime +'</td>'+
+                        '<td>'+ st +'</td>'+
+                        '<td>'+ item.updateTime +'</td>'+
+                        '</tr>';
+                    trs += tr;
+                });
+                $("table tbody").html(trs);
+                $("#pageinfo").empty();
+                if(page == $("#pagetotal").val()){
+                    $("#pageinfo").html('<label>每页 10 条记录 显示 '+ ((data.page - 1) * 10 + 1<0?0:(data.page - 1) * 10 + 1) +' 到 '+ data.records +' 项，共 '+ data.records +' 项</label>');
+                }else{
+                    $("#pageinfo").html('<label>每页 10 条记录 显示 '+ ((data.page - 1) * 10 + 1<0?0:(data.page - 1) * 10 + 1) +' 到 '+ (data.page * 10) +' 项，共 '+ data.records +' 项</label>');
+                }
+            });
+        }
+    });
+});

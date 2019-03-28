@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yks.bigdata.dao.Request_taskMapper">
+    <resultMap id="BaseResultMap" type="com.yks.bigdata.dto.trackmore.RequestTask">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="erp_orders_id" property="erpOrdersId" jdbcType="BIGINT" />
+        <result column="track_account" property="trackAccount" jdbcType="VARCHAR"/>
+        <result column="tracking_number" property="trackingNumber" jdbcType="VARCHAR"/>
+        <result column="carrier_code" property="carrierCode" jdbcType="VARCHAR"/>
+        <result column="insert_at" property="insertAt" jdbcType="TIMESTAMP"/>
+        <result column="create_at" property="createAt" jdbcType="TIMESTAMP"/>
+        <result column="fetch_time" property="fetchTime" jdbcType="TIMESTAMP"/>
+        <result column="task_status" property="taskStatus" jdbcType="INTEGER"/>
+        <result column="channelId" property="channelId" jdbcType="INTEGER"/>
+        <result column="channel" property="channel" jdbcType="VARCHAR"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        id,erp_orders_id, track_account, tracking_number, carrier_code, insert_at, create_at, fetch_time,
+        task_status,channelId,channel
+    </sql>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+        select
+        <include refid="Base_Column_List"/>
+        from request_task
+        where id = #{id,jdbcType=INTEGER}
+    </select>
+    <select id="selectByErpOrderId" resultMap="BaseResultMap" parameterType="java.lang.Long">
+        select
+        <include refid="Base_Column_List"/>
+        from request_task
+        where erp_orders_id = #{erpOrdersId}
+    </select>
+
+    <select id="selectRequestTaskByStatus" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+        select
+        <include refid="Base_Column_List"/>
+        from request_task
+        where task_status = #{id,jdbcType=INTEGER}
+
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+        delete from request_task
+        where id = #{id,jdbcType=INTEGER}
+    </delete>
+
+    <insert id="addBatch" parameterType="java.util.List" useGeneratedKeys="true">
+        insert into request_task (erp_orders_id,track_account, tracking_number,
+        carrier_code, insert_at, create_at,
+        fetch_time, task_status,channelId,channel)
+        values
+        <foreach collection="list" index="index" item="item" open="" close="" separator=",">
+            ( #{item.erpOrdersId,jdbcType=BIGINT},#{item.trackAccount,jdbcType=VARCHAR}, #{item.trackingNumber,jdbcType=VARCHAR},
+            #{item.carrierCode,jdbcType=VARCHAR}, #{item.insertAt,jdbcType=TIMESTAMP},
+            #{item.createAt,jdbcType=TIMESTAMP},
+            #{item.fetchTime,jdbcType=TIMESTAMP}, #{item.taskStatus,jdbcType=INTEGER},#{item.channelId,jdbcType=INTEGER}
+            ,#{item.channel,jdbcType=INTEGER})
+        </foreach>
+    </insert>
+
+    <insert id="insert" parameterType="com.yks.bigdata.dto.trackmore.RequestTask">
+        insert into request_task (id, erp_orders_id,track_account, tracking_number,
+        carrier_code, insert_at, create_at,
+        fetch_time, task_status,channel)
+        values (#{id,jdbcType=INTEGER},#{erpOrdersId,jdbcType=BIGINT}, #{trackAccount,jdbcType=VARCHAR}, #{trackingNumber,jdbcType=VARCHAR},
+        #{carrierCode,jdbcType=VARCHAR}, #{insertAt,jdbcType=TIMESTAMP}, #{createAt,jdbcType=TIMESTAMP},
+        #{fetchTime,jdbcType=TIMESTAMP}, #{taskStatus,jdbcType=INTEGER},#{item.channelId,jdbcType=INTEGER},#{item.channel,jdbcType=VARCHAR})
+    </insert>
+    <insert id="insertSelective" parameterType="com.yks.bigdata.dto.trackmore.RequestTask">
+        insert into request_task
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="erpOrdersId != null" >
+                erp_orders_id,
+            </if>
+            <if test="trackAccount != null">
+                track_account,
+            </if>
+            <if test="trackingNumber != null">
+                tracking_number,
+            </if>
+            <if test="carrierCode != null">
+                carrier_code,
+            </if>
+            <if test="insertAt != null">
+                insert_at,
+            </if>
+            <if test="createAt != null">
+                create_at,
+            </if>
+            <if test="fetchTime != null">
+                fetch_time,
+            </if>
+            <if test="taskStatus != null">
+                task_status,
+            </if>
+            <if test="channel != null">
+                channel,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id,jdbcType=INTEGER},
+            </if>
+            <if test="trackAccount != null">
+                #{trackAccount,jdbcType=VARCHAR},
+            </if>
+            <if test="trackingNumber != null">
+                #{trackingNumber,jdbcType=VARCHAR},
+            </if>
+            <if test="carrierCode != null">
+                #{carrierCode,jdbcType=VARCHAR},
+            </if>
+            <if test="insertAt != null">
+                #{insertAt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="createAt != null">
+                #{createAt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="fetchTime != null">
+                #{fetchTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="taskStatus != null">
+                #{taskStatus,jdbcType=INTEGER},
+            </if>
+            <if test="channel != null">
+                #{channel,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective" parameterType="com.yks.bigdata.dto.trackmore.RequestTask">
+        update request_task
+        <set>
+            <if test="erpOrdersId != null" >
+                erp_orders_id,
+            </if>
+            <if test="trackAccount != null">
+                track_account = #{trackAccount,jdbcType=VARCHAR},
+            </if>
+            <if test="trackingNumber != null">
+                tracking_number = #{trackingNumber,jdbcType=VARCHAR},
+            </if>
+            <if test="carrierCode != null">
+                carrier_code = #{carrierCode,jdbcType=VARCHAR},
+            </if>
+            <if test="insertAt != null">
+                insert_at = #{insertAt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="createAt != null">
+                create_at = #{createAt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="fetchTime != null">
+                fetch_time = #{fetchTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="taskStatus != null">
+                task_status = #{taskStatus,jdbcType=INTEGER},
+            </if>
+            <if test="channel != null">
+                channel = #{channel,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+    <update id="updateByPrimaryKey" parameterType="com.yks.bigdata.dto.trackmore.RequestTask">
+        update request_task
+        set erp_orders_id = #{erpOrdersId,jdbcType=BIGINT},
+        track_account = #{trackAccount,jdbcType=VARCHAR},
+        tracking_number = #{trackingNumber,jdbcType=VARCHAR},
+        carrier_code = #{carrierCode,jdbcType=VARCHAR},
+        insert_at = #{insertAt,jdbcType=TIMESTAMP},
+        create_at = #{createAt,jdbcType=TIMESTAMP},
+        fetch_time = #{fetchTime,jdbcType=TIMESTAMP},
+        task_status = #{taskStatus,jdbcType=INTEGER},
+        channelId =#{item.channelId,jdbcType=INTEGER},
+        channel =#{item.channel,jdbcType=INTEGER}
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+    <update id="updateStatusRegister" parameterType="java.util.List">
+        update request_task
+        set task_status = 2
+        ,set track_account = #{trackAccount,jdbcType=VARCHAR}
+        where id in
+        <foreach collection="list" index="index" item="item" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </update>
+
+    <update id="updateStatusRegister1" parameterType="java.util.List">
+        update request_task
+        set task_status = 2
+        , track_account = '${list[0].trackAccount}'
+        , create_at = now()
+        where id in
+        <foreach collection="list" index="index" item="item" open="(" close=")" separator=",">
+            #{item.id}
+        </foreach>
+    </update>
+
+    <update id="updateStatusRegisterFailed" parameterType="java.util.List">
+        update request_task
+        set
+        task_status = 4
+        where id in
+        <foreach collection="list" index="index" item="item" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </update>
+
+
+    <update id="updateStatusFinish" parameterType="java.lang.Integer">
+        update request_task
+        set
+        task_status = 5
+        where id =#{id,jdbcType=INTEGER}
+    </update>
+
+
+</mapper>

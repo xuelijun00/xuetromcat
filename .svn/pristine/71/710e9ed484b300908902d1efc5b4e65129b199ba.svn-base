@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yks.bigdata.dao.TrackYtInfoMapper">
+  <resultMap id="BaseResultMap" type="com.yks.bigdata.dto.trackmore.TrackYtInfo">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="WaybillNo" jdbcType="VARCHAR" property="waybillno" />
+    <result column="ReferenceOrderNo" jdbcType="VARCHAR" property="referenceorderno" />
+    <result column="ReferenceChangeNo" jdbcType="VARCHAR" property="referencechangeno" />
+    <result column="EventCode" jdbcType="VARCHAR" property="eventcode" />
+    <result column="EventDetail" jdbcType="VARCHAR" property="eventdetail" />
+    <result column="EventOperater" jdbcType="VARCHAR" property="eventoperater" />
+    <result column="EventOperaterCode" jdbcType="VARCHAR" property="eventoperatercode" />
+    <result column="EventLocationCode" jdbcType="VARCHAR" property="eventlocationcode" />
+    <result column="EventLocation" jdbcType="VARCHAR" property="eventlocation" />
+    <result column="EventTime" jdbcType="TIMESTAMP" property="eventtime" />
+    <result column="ServiceCode" jdbcType="VARCHAR" property="servicecode" />
+    <result column="OriginalTracking" jdbcType="VARCHAR" property="originaltracking" />
+    <result column="VisibleSign" jdbcType="VARCHAR" property="visiblesign" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, WaybillNo, ReferenceOrderNo, ReferenceChangeNo, EventCode, EventDetail, EventOperater, 
+    EventOperaterCode, EventLocationCode, EventLocation, EventTime, ServiceCode, OriginalTracking, 
+    VisibleSign, create_time
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from track_yt_info
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from track_yt_info
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <delete id="deleteByTrackNum" parameterType="java.lang.String" >
+    delete from track_yt_info
+    where WaybillNo = #{waybillno,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="com.yks.bigdata.dto.trackmore.TrackYtInfo">
+    insert into track_yt_info (id, WaybillNo, ReferenceOrderNo, 
+      ReferenceChangeNo, EventCode, EventDetail, 
+      EventOperater, EventOperaterCode, EventLocationCode, 
+      EventLocation, EventTime, ServiceCode, 
+      OriginalTracking, VisibleSign, create_time
+      )
+    values (#{id,jdbcType=INTEGER}, #{waybillno,jdbcType=VARCHAR}, #{referenceorderno,jdbcType=VARCHAR}, 
+      #{referencechangeno,jdbcType=VARCHAR}, #{eventcode,jdbcType=VARCHAR}, #{eventdetail,jdbcType=VARCHAR}, 
+      #{eventoperater,jdbcType=VARCHAR}, #{eventoperatercode,jdbcType=VARCHAR}, #{eventlocationcode,jdbcType=VARCHAR}, 
+      #{eventlocation,jdbcType=VARCHAR}, #{eventtime,jdbcType=TIMESTAMP}, #{servicecode,jdbcType=VARCHAR}, 
+      #{originaltracking,jdbcType=VARCHAR}, #{visiblesign,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}
+      )
+  </insert>
+  <insert id="addBatch" parameterType="java.util.List" >
+    insert into track_yt_info (WaybillNo, ReferenceOrderNo,
+    ReferenceChangeNo, EventCode, EventDetail,
+    EventOperater, EventOperaterCode, EventLocationCode,
+    EventLocation, EventTime, ServiceCode,
+    OriginalTracking, VisibleSign, create_time
+    )
+    values
+    <foreach collection="list" index="index" item="item" open="" close="" separator=",">
+      ( #{item.waybillno,jdbcType=VARCHAR}, #{item.referenceorderno,jdbcType=VARCHAR},
+      #{item.referencechangeno,jdbcType=VARCHAR}, #{item.eventcode,jdbcType=VARCHAR}, #{item.eventdetail,jdbcType=VARCHAR},
+      #{item.eventoperater,jdbcType=VARCHAR}, #{item.eventoperatercode,jdbcType=VARCHAR}, #{item.eventlocationcode,jdbcType=VARCHAR},
+      #{item.eventlocation,jdbcType=VARCHAR}, #{item.eventtime,jdbcType=TIMESTAMP}, #{item.servicecode,jdbcType=VARCHAR},
+      #{item.originaltracking,jdbcType=VARCHAR}, #{item.visiblesign,jdbcType=VARCHAR}, #{item.createTime,jdbcType=TIMESTAMP}
+      )
+    </foreach>
+  </insert>
+  <insert id="insertSelective" parameterType="com.yks.bigdata.dto.trackmore.TrackYtInfo">
+    insert into track_yt_info
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="waybillno != null">
+        WaybillNo,
+      </if>
+      <if test="referenceorderno != null">
+        ReferenceOrderNo,
+      </if>
+      <if test="referencechangeno != null">
+        ReferenceChangeNo,
+      </if>
+      <if test="eventcode != null">
+        EventCode,
+      </if>
+      <if test="eventdetail != null">
+        EventDetail,
+      </if>
+      <if test="eventoperater != null">
+        EventOperater,
+      </if>
+      <if test="eventoperatercode != null">
+        EventOperaterCode,
+      </if>
+      <if test="eventlocationcode != null">
+        EventLocationCode,
+      </if>
+      <if test="eventlocation != null">
+        EventLocation,
+      </if>
+      <if test="eventtime != null">
+        EventTime,
+      </if>
+      <if test="servicecode != null">
+        ServiceCode,
+      </if>
+      <if test="originaltracking != null">
+        OriginalTracking,
+      </if>
+      <if test="visiblesign != null">
+        VisibleSign,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="waybillno != null">
+        #{waybillno,jdbcType=VARCHAR},
+      </if>
+      <if test="referenceorderno != null">
+        #{referenceorderno,jdbcType=VARCHAR},
+      </if>
+      <if test="referencechangeno != null">
+        #{referencechangeno,jdbcType=VARCHAR},
+      </if>
+      <if test="eventcode != null">
+        #{eventcode,jdbcType=VARCHAR},
+      </if>
+      <if test="eventdetail != null">
+        #{eventdetail,jdbcType=VARCHAR},
+      </if>
+      <if test="eventoperater != null">
+        #{eventoperater,jdbcType=VARCHAR},
+      </if>
+      <if test="eventoperatercode != null">
+        #{eventoperatercode,jdbcType=VARCHAR},
+      </if>
+      <if test="eventlocationcode != null">
+        #{eventlocationcode,jdbcType=VARCHAR},
+      </if>
+      <if test="eventlocation != null">
+        #{eventlocation,jdbcType=VARCHAR},
+      </if>
+      <if test="eventtime != null">
+        #{eventtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="servicecode != null">
+        #{servicecode,jdbcType=VARCHAR},
+      </if>
+      <if test="originaltracking != null">
+        #{originaltracking,jdbcType=VARCHAR},
+      </if>
+      <if test="visiblesign != null">
+        #{visiblesign,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.yks.bigdata.dto.trackmore.TrackYtInfo">
+    update track_yt_info
+    <set>
+      <if test="waybillno != null">
+        WaybillNo = #{waybillno,jdbcType=VARCHAR},
+      </if>
+      <if test="referenceorderno != null">
+        ReferenceOrderNo = #{referenceorderno,jdbcType=VARCHAR},
+      </if>
+      <if test="referencechangeno != null">
+        ReferenceChangeNo = #{referencechangeno,jdbcType=VARCHAR},
+      </if>
+      <if test="eventcode != null">
+        EventCode = #{eventcode,jdbcType=VARCHAR},
+      </if>
+      <if test="eventdetail != null">
+        EventDetail = #{eventdetail,jdbcType=VARCHAR},
+      </if>
+      <if test="eventoperater != null">
+        EventOperater = #{eventoperater,jdbcType=VARCHAR},
+      </if>
+      <if test="eventoperatercode != null">
+        EventOperaterCode = #{eventoperatercode,jdbcType=VARCHAR},
+      </if>
+      <if test="eventlocationcode != null">
+        EventLocationCode = #{eventlocationcode,jdbcType=VARCHAR},
+      </if>
+      <if test="eventlocation != null">
+        EventLocation = #{eventlocation,jdbcType=VARCHAR},
+      </if>
+      <if test="eventtime != null">
+        EventTime = #{eventtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="servicecode != null">
+        ServiceCode = #{servicecode,jdbcType=VARCHAR},
+      </if>
+      <if test="originaltracking != null">
+        OriginalTracking = #{originaltracking,jdbcType=VARCHAR},
+      </if>
+      <if test="visiblesign != null">
+        VisibleSign = #{visiblesign,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.yks.bigdata.dto.trackmore.TrackYtInfo">
+    update track_yt_info
+    set WaybillNo = #{waybillno,jdbcType=VARCHAR},
+      ReferenceOrderNo = #{referenceorderno,jdbcType=VARCHAR},
+      ReferenceChangeNo = #{referencechangeno,jdbcType=VARCHAR},
+      EventCode = #{eventcode,jdbcType=VARCHAR},
+      EventDetail = #{eventdetail,jdbcType=VARCHAR},
+      EventOperater = #{eventoperater,jdbcType=VARCHAR},
+      EventOperaterCode = #{eventoperatercode,jdbcType=VARCHAR},
+      EventLocationCode = #{eventlocationcode,jdbcType=VARCHAR},
+      EventLocation = #{eventlocation,jdbcType=VARCHAR},
+      EventTime = #{eventtime,jdbcType=TIMESTAMP},
+      ServiceCode = #{servicecode,jdbcType=VARCHAR},
+      OriginalTracking = #{originaltracking,jdbcType=VARCHAR},
+      VisibleSign = #{visiblesign,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>

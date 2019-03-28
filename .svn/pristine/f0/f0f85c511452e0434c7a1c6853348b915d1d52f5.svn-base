@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yks.bigdata.dao.TrackIBInfoMapper" >
+  <resultMap id="BaseResultMap" type="com.yks.bigdata.dto.trackmore.TrackIBInfo" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="tracking_code" property="trackingCode" jdbcType="VARCHAR" />
+    <result column="packageId" property="packageid" jdbcType="VARCHAR" />
+    <result column="status" property="status" jdbcType="VARCHAR" />
+    <result column="comment" property="comment" jdbcType="VARCHAR" />
+    <result column="time" property="time" jdbcType="TIMESTAMP" />
+    <result column="location" property="location" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, tracking_code, packageId, status, comment, time, location, create_time
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from track_ib_info
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <select id="selectByIbInfo" resultMap="BaseResultMap" parameterType="com.yks.bigdata.dto.trackmore.TrackIBInfo"  >
+    select
+    <include refid="Base_Column_List" />
+    from track_ib_info
+    <where>
+      <if test="id != null">id = #{id,jdbcType=INTEGER}</if>
+      <if test="trackingCode != null">tracking_code = #{trackingCode,jdbcType=VARCHAR}</if>
+      <if test="packageId != null">packageId = #{packageId,jdbcType=VARCHAR}</if>
+    </where>
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from track_ib_info
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <delete id="deleteByTrackingCode" parameterType="java.lang.String" >
+    delete from track_ib_info
+    where tracking_code = #{trackingCode,jdbcType=VARCHAR}
+  </delete>
+
+  <insert id="insert" parameterType="com.yks.bigdata.dto.trackmore.TrackIBInfo" >
+    insert into track_ib_info (id, tracking_code, packageId, 
+      status, comment, time, 
+      location, create_time)
+    values (#{id,jdbcType=INTEGER}, #{trackingCode,jdbcType=VARCHAR}, #{packageid,jdbcType=VARCHAR},
+      #{status,jdbcType=VARCHAR}, #{comment,jdbcType=VARCHAR}, #{time,jdbcType=TIMESTAMP}, 
+      #{location,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="addBatch" parameterType="java.util.List" >
+    insert into track_ib_info ( tracking_code, packageId,
+    status, comment, time,
+    location, create_time)
+    values
+    <foreach collection="list" index="index" item="item" open="" close="" separator=",">
+      ( #{item.trackingCode,jdbcType=VARCHAR}, #{item.packageid,jdbcType=VARCHAR},
+      #{item.status,jdbcType=VARCHAR}, #{item.comment,jdbcType=VARCHAR}, #{item.time,jdbcType=TIMESTAMP},
+      #{item.location,jdbcType=VARCHAR}, #{item.createTime,jdbcType=TIMESTAMP})
+    </foreach>
+  </insert>
+  <insert id="insertSelective" parameterType="com.yks.bigdata.dto.trackmore.TrackIBInfo" >
+    insert into track_ib_info
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="trackingCode != null" >
+        tracking_code,
+      </if>
+      <if test="packageid != null" >
+        packageId,
+      </if>
+      <if test="status != null" >
+        status,
+      </if>
+      <if test="comment != null" >
+        comment,
+      </if>
+      <if test="time != null" >
+        time,
+      </if>
+      <if test="location != null" >
+        location,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="trackingCode != null" >
+        #{tracking_code,jdbcType=VARCHAR},
+      </if>
+      <if test="packageid != null" >
+        #{packageid,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=VARCHAR},
+      </if>
+      <if test="comment != null" >
+        #{comment,jdbcType=VARCHAR},
+      </if>
+      <if test="time != null" >
+        #{time,jdbcType=TIMESTAMP},
+      </if>
+      <if test="location != null" >
+        #{location,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.yks.bigdata.dto.trackmore.TrackIBInfo" >
+    update track_ib_info
+    <set >
+      <if test="trackingCode != null" >
+        tracking_code = #{trackingCode,jdbcType=VARCHAR},
+      </if>
+      <if test="packageid != null" >
+        packageId = #{packageid,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null" >
+        status = #{status,jdbcType=VARCHAR},
+      </if>
+      <if test="comment != null" >
+        comment = #{comment,jdbcType=VARCHAR},
+      </if>
+      <if test="time != null" >
+        time = #{time,jdbcType=TIMESTAMP},
+      </if>
+      <if test="location != null" >
+        location = #{location,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.yks.bigdata.dto.trackmore.TrackIBInfo" >
+    update track_ib_info
+    set tracking_code = #{trackingCode,jdbcType=VARCHAR},
+      packageId = #{packageid,jdbcType=VARCHAR},
+      status = #{status,jdbcType=VARCHAR},
+      comment = #{comment,jdbcType=VARCHAR},
+      time = #{time,jdbcType=TIMESTAMP},
+      location = #{location,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>

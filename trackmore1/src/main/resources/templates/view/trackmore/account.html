@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <title>YKS物流信息状态查询系统</title>
+    <script th:src="@{/jsLoad/code/load.js}" src="jsLoad/code/load.js" include="../top.html"></script>
+</head>
+<body class="gray-bg">
+<div class="wrapper wrapper-content">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>track more账号报表</h5>
+                </div>
+                <div class="ibox-content">
+                    <form class="form-inline request" method="get" th:action="@{/account/view}" id="accountForm">
+                        <div class="form-group">
+                            <label>账号名称</label>
+                            <input type="text" class="form-control"  id="account" name="account" th:value="${accountParam != null ?accountParam.account:''}"/>
+                        </div>
+                        <div class="form-group">
+                            <label>创建日期</label>
+                            <input type="text" class="form-control"  id="createTime" name ="createDate" th:value="${accountParam != null ?accountParam.createDate:''}"/>
+                        </div>
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">查询</button>
+                        </div>
+                    </form>
+                    <div class="hr-line-dashed"></div>
+                    <div class="mbottom">
+                        <a href="javascript:;" th:onclick="'javascript:common.showAddOrEdit2(\'添加账号\',\''+@{/common?path=trackmore/add_account}+'\',\'780px\',\'250px\')'" >
+                            <i class="fa fa-plus"></i>新增账号和KEY</a>
+                        <a href="javascript:;" onclick="accountManagement.downloadCsv()">
+                            <i class="fa fa-download"></i>下载csv</a>
+                    </div>
+                    <table class="table table-striped table-bordered table-hover">
+                        <thead>
+                        <tr>
+                            <!--<th width="20"><input id="checkAll" type="checkbox" /></th>-->
+                            <th width="50">序号</th>
+                            <th>账号</th>
+                            <th>key</th>
+                            <th>创建时间</th>
+                            <th>已使用额度</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="account,channelState:${table.rows}">
+                            <td th:text="${channelState.index + 1}" >account.id</td>
+                            <td th:text="${account.account}" >account.id</td>
+                            <td th:text="${account.apiKey}" >account.id</td>
+                            <td th:text="${account.createTime}" >account.id</td>
+                            <td th:text="${account.dataCount}" >account.id</td>
+                            <td><div class="dropdown">
+                                <button class="btn btn-sm btn-info dropdown-toggle" type="button" id="dropdownMenu1"
+                                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">操作
+                                    <span class="caret"></span>
+                                </button>
+                                <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+                                    <li><a onclick="baseCurrency.findCurrency(34)">启用</a></li>
+                                    <li><a onclick="baseCurrency.deleteCurrency(34)">停用</a></li>
+                                </ul>
+                            </div></td>
+                        </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="row" >
+                        <div class="col-md-6 pull-left top20 " >
+                            <input id="curPage" th:value="${table.page}" type="hidden"/>
+                            <input id="pagetotal" th:value="${table.total}" type="hidden"/>
+                            <label id="pageinfo">每页 <select class="input-sm" id="pagesize" onclick="channelManagement.pageSizeChange(this)">
+                                <option value="10">10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option></select> 条记录 显示 <em th:text="${(table.page - 1) * 10 + 1}"></em> 到 <em th:text="${table.page * 10 }"></em> 项，共 <em th:text="${table.records}"></em>项</label>
+                        </div>
+                        <div class="col-md-6 pull-right text-right" >
+                            <div id="page"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script th:src="@{/jsLoad/code/load.js}" src="jsLoad/code/load.js" include="../js.html"></script>
+<!--加本页面 的js文件与js代码-->
+<script th:inline="javascript" th:src="@{/js/chosen.js}" ></script>
+<script th:inline="javascript" th:src="@{/js/trackmore/common.js}" ></script>
+<script th:inline="javascript" th:src="@{/js/trackmore/account.js}" ></script>
+
+
+</body>
+</html>

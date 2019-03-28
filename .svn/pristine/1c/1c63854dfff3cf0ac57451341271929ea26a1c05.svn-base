@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8" />
+    <title>YKSUI框架 - 需求管理</title>
+    <script src="jsLoad/code/load.js?20170116" th:src="@{/jsLoad/code/load.js}" include="../top.html"></script>
+    <!--加css-->
+</head>
+<body class="gray-bg">
+<div class="wrapper wrapper-content">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-content">
+                    <form class="form-horizontal m-t container-form" id="channelManagement" method="post" th:action="@{/LogisticsDetails/updateOrderTrackTime}">
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">订单号：</label>
+                            <div class="col-sm-7">
+                                <input type="text" th:value="${orders}?${orders.erpOrdersId}" th:readonly="${orders}" name="erpOrdersId" class="form-control" placeholder="请输入" required="required" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">订单追踪码：</label>
+                            <div class="col-sm-7">
+                                <input type="text" th:value="${orders}?${orders.ordersMailCode}" th:readonly="${orders}" name="ordersMailCode" class="form-control" placeholder="请输入" required="required" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">平台：</label>
+                            <div class="col-sm-7">
+                                <input type="text" th:value="${orders}?${orders.platform}" th:readonly="${orders}" name="platform" class="form-control"  placeholder="请输入" required="required" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">国家：</label>
+                            <div class="col-sm-7">
+                                <input type="text" th:value="${orders}?${orders.country}" th:readonly="${orders}" name="country" class="form-control"  placeholder="请输入" required="required" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">渠道：</label>
+                            <div class="col-sm-7">
+                                <input type="text" th:value="${orders}?${orders.channelName}" th:readonly="${orders}" name="channelName" class="form-control"  placeholder="请输入" required="required" />
+                            </div>
+                        </div>
+                        <!--<div class="form-group">
+                            <label class="col-sm-3 control-label">状态：</label>
+                            <div class="col-sm-7">
+                                <input type="text" th:value="${orders}?${orders.trackStatus}" name="trackStatus" class="form-control"  />
+                            </div>
+                            <label class="col-sm-3 control-label">异常状态：</label>
+                            <div class="col-sm-7">
+                                <input type="text" th:value="${orders}?${orders.exceptionStatus}" name="exceptionStatus" class="form-control"  />
+                            </div>
+                        </div>-->
+                        <!--<div class="form-group">
+                            <label>状态：</label>
+                            <select class="chosen-select" name="trackStatus" id="trackStatus" th:value="${orders.trackStatus}" >
+                                <option value="" >已同步</option>
+                                <option value="1" >上网</option>
+                                <option value="2" >封发</option>
+                                <option value="3" >交航</option>
+                                <option value="4" >落地</option>
+                                <option value="5" >妥投</option>
+                                <option value="803" >生成request task成功</option>
+                            </select>
+                        </div>-->
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">发货日期：</label>
+                            <div class="col-sm-7">
+                                <input type="text"  th:value="${orders.ordersOutTime}?${#dates.format(orders.ordersOutTime,'yyyy-MM-dd HH:mm:ss')}" name="ordersOutTime" class="form-control" id="ordersOutTime" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">上网时间：</label>
+                            <div class="col-sm-7">
+                                <input type="text"  th:value="${orders.internetDate}?${#dates.format(orders.internetDate,'yyyy-MM-dd HH:mm:ss')}" name="internetDate" class="form-control" id="internetDate" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">封发时间：</label>
+                            <div class="col-sm-7">
+                                <input type="text"  th:value="${orders.baleDate}?${#dates.format(orders.baleDate,'yyyy-MM-dd HH:mm:ss')}" name="baleDate" class="form-control" id="baleDate" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">交航时间：</label>
+                            <div class="col-sm-7">
+                                <input type="text"  th:value="${orders.trafficDate}?${#dates.format(orders.trafficDate,'yyyy-MM-dd HH:mm:ss')}" name="trafficDate" class="form-control" id="trafficDate" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">落地时间：</label>
+                            <div class="col-sm-7">
+                                <input type="text"  th:value="${orders.landingDate}?${#dates.format(orders.landingDate,'yyyy-MM-dd HH:mm:ss')}" name="landingDate" class="form-control" id="landingDate" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">妥投时间：</label>
+                            <div class="col-sm-7">
+                                <input type="text"  th:value="${orders.deliveredDate}?${#dates.format(orders.deliveredDate,'yyyy-MM-dd HH:mm:ss')}" name="deliveredDate" class="form-control" id="deliveredDate" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-4 col-sm-offset-5">
+                                <button class="btn btn-primary btn-save" type="submit" onclick="channelManagement.save()" >保存</button>
+                                <button class="btn btn-default " type="button" onclick="parent.common.close(201)">取消</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="jsLoad/code/load.js?20170116" th:src="@{/jsLoad/code/load.js}" include="../js.html"></script>
+<!--加本页面 的js文件与js代码-->
+<script src="js/chosen.js" th:src="@{/js/chosen.js}"></script>
+<script th:inline="javascript" th:src="@{/js/trackmore/common.js}" ></script>
+<script th:inline="javascript" th:src="@{/js/trackmore/logistics_details.js}"></script>
+</body>
+</html>

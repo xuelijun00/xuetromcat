@@ -1,0 +1,93 @@
+db.datasource.type=com.alibaba.druid.pool.DruidDataSource
+
+# 主数据源，默认的  
+db.master.driver-class-name=com.mysql.jdbc.Driver
+db.master.url=jdbc:mysql://dev.trackmoredbm.kokoerp.com:3306/trackmore?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&rewriteBatchedStatements=true&allowMultiQueries=true
+db.master.username=trackmore
+db.master.password=341pZJ6NLbuXNmTp
+# 初始化大小，最小，最大  
+db.master.initialSize=20
+db.master.minIdle=5
+db.master.maxActive=50
+# 配置获取连接等待超时的时间  
+db.master.maxWait=60000
+# 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒  
+db.master.timeBetweenEvictionRunsMillis=60000
+# 配置一个连接在池中最小生存的时间，单位是毫秒  
+db.master.minEvictableIdleTimeMillis=300000
+db.master.validationQuery=SELECT 1 FROM DUAL
+db.master.testWhileIdle=true
+db.master.testOnBorrow=false
+db.master.testOnReturn=false
+# 打开PSCache，并且指定每个连接上PSCache的大小  
+db.master.poolPreparedStatements=true
+db.master.maxPoolPreparedStatementPerConnectionSize=20
+# 配置监控统计拦截的filters，去掉后监控界面sql无法统计，'wall'用于防火墙  
+db.master.filters=stat,wall,logback
+# 通过connectProperties属性来打开mergeSql功能；慢SQL记录  
+db.master.connectionProperties=druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+# 合并多个DruidDataSource的监控数据  
+db.master.useGlobalDataSourceStat=true
+
+# laoerp数据源
+db.erp.driver-class-name=com.mysql.jdbc.Driver
+db.erp.url=jdbc:mysql://bidbm.kokoerp.com:3306/erp_database?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&rewriteBatchedStatements=true&allowMultiQueries=true
+db.erp.username=liuxing2
+db.erp.password=tSa6M4Qd
+# 初始化大小，最小，最大  
+db.erp.initialSize=3
+db.erp.minIdle=3
+db.erp.maxActive=5
+# 配置获取连接等待超时的时间  
+db.erp.maxWait=60000
+# 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒  
+db.erp.timeBetweenEvictionRunsMillis=60000
+# 配置一个连接在池中最小生存的时间，单位是毫秒  
+db.erp.minEvictableIdleTimeMillis=60000
+db.erp.validationQuery=SELECT 1 FROM DUAL
+db.erp.testWhileIdle=true
+db.erp.testOnBorrow=false
+db.erp.testOnReturn=false
+# 打开PSCache，并且指定每个连接上PSCache的大小  
+db.erp.poolPreparedStatements=true
+db.erp.maxPoolPreparedStatementPerConnectionSize=20
+# 配置监控统计拦截的filters，去掉后监控界面sql无法统计，'wall'用于防火墙  
+db.erp.filters=stat,wall,logback
+# 通过connectProperties属性来打开mergeSql功能；慢SQL记录  
+db.erp.connectionProperties=druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+# 合并多个DruidDataSource的监控数据  
+db.erp.useGlobalDataSourceStat=true
+#db.erp.removeAbandoned=true
+#db.erp.removeAbandonedTimeout=180
+#db.erp.logAbandoned=true
+
+
+
+# laoerp数据源
+db.bi.driver-class-name=com.mysql.jdbc.Driver
+db.bi.url=jdbc:mysql://bidbm.kokoerp.com:3306/bi?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull&rewriteBatchedStatements=true&allowMultiQueries=true
+db.bi.username=liuxing2
+db.bi.password=tSa6M4Qd
+# 初始化大小，最小，最大
+db.bi.initialSize=3
+db.bi.minIdle=3
+db.bi.maxActive=5
+# 配置获取连接等待超时的时间
+db.bi.maxWait=60000
+# 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒
+db.bi.timeBetweenEvictionRunsMillis=60000
+# 配置一个连接在池中最小生存的时间，单位是毫秒
+db.bi.minEvictableIdleTimeMillis=60000
+db.bi.validationQuery=SELECT 1 FROM DUAL
+db.bi.testWhileIdle=true
+db.bi.testOnBorrow=false
+db.bi.testOnReturn=false
+# 打开PSCache，并且指定每个连接上PSCache的大小
+db.bi.poolPreparedStatements=true
+db.bi.maxPoolPreparedStatementPerConnectionSize=20
+# 配置监控统计拦截的filters，去掉后监控界面sql无法统计，'wall'用于防火墙
+db.bi.filters=stat,wall,logback
+# 通过connectProperties属性来打开mergeSql功能；慢SQL记录
+db.bi.connectionProperties=druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+# 合并多个DruidDataSource的监控数据
+db.bi.useGlobalDataSourceStat=true

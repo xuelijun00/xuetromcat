@@ -1,0 +1,164 @@
+package com.yks.bigdata.service.trackmore.impl;
+
+import com.yks.bigdata.dao.ErpEOrdersProcessMapper;
+import com.yks.bigdata.dao.Logistics_statusMapper;
+import com.yks.bigdata.dto.report.NodeDto;
+import com.yks.bigdata.dto.trackmore.LogisticReport;
+import com.yks.bigdata.dto.trackmore.LogisticsStatus;
+import com.yks.bigdata.util.DateUtils;
+import org.apache.commons.lang3.time.DateFormatUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
+
+import java.math.BigDecimal;
+import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.regex.Pattern;
+
+/**
+ * Created by liuxing on 2017/10/11.
+ */
+@Service
+public class ErpOrdersProcessService {
+
+    private static Logger log = LoggerFactory.getLogger(ErpOrdersProcessService.class);
+
+    @Autowired
+    ErpEOrdersProcessMapper processMapper;
+
+    @Autowired
+    Logistics_statusMapper logistics_statusMapper;
+
+    @Autowired
+    ValueOperations<String,Object> valueOperations;
+
+
+    @Value("${fetch.thread.size}")
+    private int threadSize;
+
+    public List<LogisticReport> getRedisAllData(){
+        List<LogisticReport> logisticReports = new ArrayList<>();
+        Iterator<String> iterator = valueOperations.getOperations().keys("*").iterator();
+        while (iterator.hasNext()){
+            String key = iterator.next();
+            if(Pattern.matches("^.*[0-9]{4}-[0-9]{2}-[0-9]{2}$", key)){
+                LogisticReport logisticReport = (LogisticReport)valueOperations.get(key);
+                if(logisticReport != null)
+                    logisticReports.add(logisticReport);
+            }
+        }
+        return logisticReports;
+    }
+
+    public List<LogisticReport> getRedisReportData(String channel,String startTime, String endTime){
+        List<LogisticReport> logisticReports = new ArrayList<>();
+        if(StringUtils.isEmpty(channel) || StringUtils.isEmpty(startTime) || StringUtils.isEmpty(endTime)){
+            return logisticReports;
+        }
+        try{
+            Date startDate = DateUtils.formmatStr(startTime, "yyyy-MM-dd");
+            Date endDate = DateUtils.formmatStr(endTime, "yyyy-MM-dd");
+            long l = (endDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000);
+            List<String> keys = new ArrayList<>();
+            keys.add(channel + startTime);
+            for (int i=1;i <= l;i++){
+                Calendar instance = Calendar.getInstance();
+                instance.setTime(startDate);
+                instance.add(Calendar.DAY_OF_MONTH,i);
+                keys.add(channel+ DateFormatUtils.format(instance.getTime(),"yyyy-MM-dd"));
+            }
+
+            for (String key:keys){
+                LogisticReport logisticReport = (LogisticReport) valueOperations.get(key);
+                if(logisticReport != null)
+                    logisticReports.add(logisticReport);
+            }
+        }catch (Exception ex){
+            ex.printStackTrace();
+            log.error("获取redis数据出错：" + ex.getLocalizedMessage());
+        }
+        return logisticReports;
+    }
+
+    public void processData(){
+        ExecutorService executorService = Executors.newFixedThreadPool(threadSize);
+        Future<List<NodeDto>> submit = null;
+        List<LogisticReport> logisticReports = processMapper.selectReportCountGyChannelAndOrderOutDate(null);
+        for (LogisticReport logisticReport:logisticReports) {
+            final  String channel = logisticReport.getChannelName();
+            final  String ordersOutTime = logisticReport.getOrderOutTime();
+            final LogisticReport logisticReport1 = logisticReport;
+            submit = executorService.submit(new Callable<List<NodeDto>>() {
+                @Override
+                public List<NodeDto> call() throws Exception {
+                    return processNodeData(channel, ordersOutTime, logisticReport1.getShipcount());
+                }
+            });
+            try{
+                List<NodeDto> nodeDtos = submit.get();
+                logisticReport.setNodeDtoList(nodeDtos);
+            }catch (Exception ex){}
+            valueOperations.set(channel+ordersOutTime,logisticReport);
+        }
+        try{submit.get();}catch (Exception ex){}
+        executorService.shutdownNow();
+    }
+
+    /**
+     * 处理节点计算
+     * @param channel
+     * @param ordersOutTime
+     * @param count
+     * @return
+     */
+    public List<NodeDto> processNodeData(String channel,String ordersOutTime,int count){
+        List<LogisticsStatus> logisticsStatuses = logistics_statusMapper.selectByChannel(channel);
+        if(CollectionUtils.isEmpty(logisticsStatuses)){
+            return null;
+        }
+        List<NodeDto> list = new ArrayList<>();
+        for (int i=0;i<logisticsStatuses.size();i++){
+            //汇总数据
+            Integer integer = processMapper.selectNodeCount(i + 1, channel + ordersOutTime);
+            if(integer == null){//没有数据时
+                NodeDto nodeDto = new NodeDto();
+                nodeDto.setNode(i+1);
+                nodeDto.setCount(0);
+                nodeDto.setRate(0d);
+                nodeDto.setDifferDay(0d);
+                list.add(nodeDto);
+                continue;
+            }
+            //要计算得时间节点数据
+            List<NodeDto> nodeDtos = processMapper.selectNodesByChannel(i + 1, channel, ordersOutTime);
+            Double differDay = 0d;
+            for (NodeDto nodeDto:nodeDtos){
+                Double d = 0d;
+                if(nodeDto.getProcess_time() != null){
+                    d = (nodeDto.getProcess_time().getTime() - nodeDto.getOrders_out_time().getTime())/ (24 * 60 * 60 * 1000d);
+                }
+                nodeDto.setDifferDay(d);
+                BigDecimal a = new BigDecimal(d);
+                BigDecimal b = new BigDecimal(differDay);
+                differDay = a.add(b).doubleValue();
+            }
+            NodeDto nodeDto = new NodeDto();
+            nodeDto.setNode(i+1);
+            nodeDto.setCount(integer);
+            nodeDto.setRate(integer/Double.parseDouble(count + ""));
+            nodeDto.setDifferDay(differDay / integer);
+            list.add(nodeDto);
+        }
+        return list;
+    }
+
+}

@@ -1,0 +1,216 @@
+package com.yks.bigdata.web.trackmore;
+
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
+import com.yks.bigdata.dto.trackmore.ErpOrders;
+import com.yks.bigdata.dto.trackmore.LogisticsChannel;
+import com.yks.bigdata.service.trackmore.*;
+import com.yks.bigdata.service.trackmore.impl.ErpOrdersProcessService;
+import com.yks.bigdata.web.vo.FilterDto;
+import com.yks.bigdata.web.vo.GridModel;
+import com.yks.bigdata.web.vo.MessageVo;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.http.HttpServletRequest;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.text.ParseException;
+import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Created by Administrator on 2017/6/30.
+ */
+
+@Controller
+@RequestMapping("/LogisticsDetails")
+public class LogisticsDetailsController {
+
+    private Logger logger = LoggerFactory.getLogger(LogisticsDetailsController.class);
+
+    @Autowired
+    IErpOrdersService erpOrdersService;
+
+    @Autowired
+    ITrackInfoDetailService trackInfoDetailService;
+
+    @Autowired
+    ErpOrdersProcessService processService;
+
+    @Autowired
+    ILogisticsChannelService logisticsChannelService;
+
+    @ResponseBody
+    @RequestMapping(value = "/get", method = RequestMethod.GET)
+    public GridModel get(FilterDto filterDto, String erpOrdersId1, String ordersMailCode1, String platform, String startTime, String endTime, String channelNames) {
+        ErpOrders erpOrder = new ErpOrders();
+        if (erpOrdersId1 != null && erpOrdersId1.length() > 0) {
+            String[] arr = erpOrdersId1.split("\n");
+            erpOrder.setErpOrdersId1("'" + StringUtils.join(arr, "','") + "'");
+        }
+        if (ordersMailCode1 != null && ordersMailCode1.length() > 0) {
+            String[] arr = ordersMailCode1.split("\n");
+            erpOrder.setOrdersMailCode("'" + StringUtils.join(arr, "','") + "'");
+        }
+        if (StringUtils.isNotEmpty(channelNames)) {
+            erpOrder.setChannelName("'" + channelNames + "'");
+        }
+        erpOrder.setPlatform(platform);
+        erpOrder.setStartTime(startTime);
+        erpOrder.setEndTime(endTime);
+        PageHelper.startPage(filterDto.getPage(), filterDto.getRows(), true);
+        List<ErpOrders> phy = erpOrdersService.selectErpOrdersDetails(erpOrder);
+        GridModel gridModel = new GridModel(new PageInfo<>(phy));
+        gridModel.setPagesize(filterDto.getRows());
+        return gridModel;
+    }
+
+    @RequestMapping(value = "/view", method = RequestMethod.GET)
+    public String view(HttpServletRequest request, String erpOrdersId1, String ordersMailCode1, String platform, String startTime, String endTime, String channelNames) {
+        ErpOrders erpOrder = new ErpOrders();
+        if (erpOrdersId1 != null && erpOrdersId1.length() > 0) {
+            String[] arr = erpOrdersId1.split("\r\n");
+            erpOrder.setErpOrdersId1("'" + StringUtils.join(arr, "','") + "'");
+        }
+        if (ordersMailCode1 != null && ordersMailCode1.length() > 0) {
+            String[] arr = ordersMailCode1.split("\r\n");
+            erpOrder.setOrdersMailCode("'" + StringUtils.join(arr, "','") + "'");
+        }
+        erpOrder.setPlatform(platform);
+        erpOrder.setStartTime(startTime);
+        erpOrder.setEndTime(endTime);
+        if (StringUtils.isNotEmpty(channelNames)) {
+            erpOrder.setChannelName("'" + channelNames + "'");
+        }
+        PageHelper.startPage(1, 10, true);
+        List<ErpOrders> phy = erpOrdersService.selectErpOrdersDetails(erpOrder);
+        request.setAttribute("table", new GridModel(new PageInfo<>(phy)));
+        erpOrder.setErpOrdersId1(erpOrdersId1);
+        erpOrder.setOrdersMailCode(ordersMailCode1);
+        request.setAttribute("platforms", erpOrdersService.selectplatform());
+
+        LogisticsChannel channel1 = new LogisticsChannel();
+        channel1.setStatus(1);
+        List<LogisticsChannel> logisticsChannels = logisticsChannelService.selectLogisticsChannels(channel1);
+        List<String> channelName = new ArrayList<>();
+        for(LogisticsChannel channel2:logisticsChannels){
+            channelName.add(channel2.getYksChannelName());
+        }
+
+        request.setAttribute("channelNames", channelName);
+        request.setAttribute("channelNameParam", new String[]{channelNames});
+        request.setAttribute("channelParam", erpOrder);
+        return "trackmore/logistics_detail";
+    }
+
+    @RequestMapping(value = "/view/new",method = RequestMethod.GET)
+    public String viewNew(HttpServletRequest request,String erpOrdersId1,String ordersMailCode1,String platform,String startTime,String endTime,String channelNames){
+        ErpOrders erpOrder = new ErpOrders();
+        if (erpOrdersId1 != null && erpOrdersId1.length() > 0) {
+            String[] arr = erpOrdersId1.split("\r\n");
+            erpOrder.setErpOrdersId1("'" + StringUtils.join(arr, "','") + "'");
+        }
+        if (ordersMailCode1 != null && ordersMailCode1.length() > 0) {
+            String[] arr = ordersMailCode1.split("\r\n");
+            erpOrder.setOrdersMailCode("'" + StringUtils.join(arr, "','") + "'");
+        }
+        erpOrder.setPlatform(platform);
+        erpOrder.setStartTime(startTime);
+        erpOrder.setEndTime(endTime);
+        if(StringUtils.isNotEmpty(channelNames)){
+            erpOrder.setChannelName("'" + channelNames + "'");
+        }
+        PageHelper.startPage(1, 10, true);
+        List<ErpOrders> phy = erpOrdersService.selectErpOrdersDetails(erpOrder);
+        request.setAttribute("table",new GridModel(new PageInfo<>(phy)));
+        erpOrder.setErpOrdersId1(erpOrdersId1);
+        erpOrder.setOrdersMailCode(ordersMailCode1);
+        request.setAttribute("platforms", erpOrdersService.selectplatform());
+
+        LogisticsChannel channel1 = new LogisticsChannel();
+        channel1.setStatus(1);
+        List<LogisticsChannel> logisticsChannels = logisticsChannelService.selectLogisticsChannels(channel1);
+        List<String> channelName = new ArrayList<>();
+        for(LogisticsChannel channel2:logisticsChannels){
+            channelName.add(channel2.getYksChannelName());
+        }
+
+        request.setAttribute("channelNames", channelName);
+        request.setAttribute("channelNameParam", new String[]{channelNames});
+        request.setAttribute("channelParam",erpOrder);
+        return "trackmore/logistics_detail_new";
+    }
+
+
+    @RequestMapping(value = "/detailedview", method = RequestMethod.GET)
+    public String updateView(String ordersMailCode, HttpServletRequest request) {
+        request.setAttribute("detailedInfo", trackInfoDetailService.selectStatusInformation(ordersMailCode));
+        return "trackmore/logistics_detailed_popup";
+    }
+
+    /**
+     * 批量修改订单对应物流状态的时间节点
+     *
+     * @param file
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value = "/updateOrdersProcess", method = RequestMethod.POST)
+    public MessageVo updateOrdersProcess(MultipartFile file) {
+        String[] FILE_HEADER = {"订单ID(*)", "上网时间", "封发时间", "交航时间", "落地时间", "妥投时间"};
+        CSVFormat format = CSVFormat.DEFAULT.withHeader(FILE_HEADER).withSkipHeaderRecord();    //去掉文件头
+        Map<String, Object> map = new HashMap<>();
+        try {
+            String dataStr = IOUtils.toString(file.getInputStream(), Charset.forName("GBK"));
+            if (StringUtils.isEmpty(dataStr)) {
+                return new MessageVo(HttpStatus.SC_BAD_REQUEST, "上传数据为空,请检查！");
+            }
+            CSVParser parser = CSVParser.parse(dataStr, format);
+            List<CSVRecord> csvRecords = parser.getRecords();
+            map = processService.updateProcessTimeByOrderIdAndNodeStatus(csvRecords);
+        } catch (FileNotFoundException e) {
+            logger.error("读取文件时，发生FileNotFoundException异常！");
+            return new MessageVo(HttpStatus.SC_BAD_REQUEST, "请选择批量修改的文件");
+        } catch (ParseException e) {
+            logger.error("批量修改物流时间节点中，时间格式错误！");
+            return new MessageVo(HttpStatus.SC_BAD_REQUEST, "请严格按照模版中的时间格式！");
+        } catch (IOException e) {
+            logger.error("文件转换格式时，发生IOException异常！");
+            return new MessageVo(HttpStatus.SC_BAD_REQUEST, "批量修改物流状态时间节点失败,请严格遵守模版格式！");
+        } catch (Exception e) {
+            logger.error("批量修改物流时间节点中，时间格式错误！"+ e.getMessage());
+            e.printStackTrace();
+            return new MessageVo(HttpStatus.SC_BAD_REQUEST, "请严格按照模版中的时间格式！");
+        }
+        if (!map.isEmpty()) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("批量修改物流节点成功！\n总共修改").append(map.get("updateResult")).append("条!\n");
+            /*sb.append("新增节点").append(map.get("insertResult")).append("条!\n");*/
+            if (map.get("nonOrder") != null) {
+                sb.append("以下订单不存在:\n").append(map.get("nonOrder")).append(".");
+            }
+            if (map.get("repeatOrder") != null) {
+                sb.append("以下订单重复，只修改最前一行的数据:\n").append(map.get("repeatOrder")).append(".");
+            }
+            return new MessageVo(HttpStatus.SC_OK, sb.toString() );
+        } else {
+            return new MessageVo(HttpStatus.SC_BAD_REQUEST, "批量修改物流状态失败！请检查文件格式是否正确!");
+        }
+    }
+}

@@ -1,0 +1,131 @@
+package com.yks.bigdata.service.trackmore.impl;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.github.pagehelper.PageHelper;
+import com.yks.bigdata.dao.SystemExceptionMapper;
+import com.yks.bigdata.dao.TrackLWEInfoMapper;
+import com.yks.bigdata.dto.system.SystemException;
+import com.yks.bigdata.dto.trackmore.RequestTask;
+import com.yks.bigdata.dto.trackmore.TrackIBInfo;
+import com.yks.bigdata.dto.trackmore.TrackLWEInfo;
+import com.yks.bigdata.util.DateUtils;
+import com.yks.bigdata.util.HttpRequestUtils;
+import com.yks.bigdata.util.ResponseData;
+import org.apache.commons.lang3.time.DateFormatUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
+
+import java.util.*;
+import java.util.concurrent.*;
+
+/**
+ * Created by liuxing on 2017/9/15.
+ * lwe接口对接
+ */
+@Service
+public class ChannelLWEService {
+
+    @Autowired
+    TrackLWEInfoMapper trackLWEInfoMapper;
+
+    @Autowired
+    SystemExceptionMapper systemExceptionMapper;
+
+    @Autowired
+    RequestTaskServiceImpl requestTaskService;
+    //http://api.unixus.com.my/Tracking/V2/Tracking.svc/json/Details/?ids=0173941742919679,15613051120113611
+    private static String url = "http://api.unixus.com.my/Tracking/V2/Tracking.svc/json/Details/?ids=%s";
+
+    private static Map<String,String> ibHeaders = new HashMap<>();
+    static {
+        ibHeaders.put("Content-Type", "application/json");
+    }
+
+    public void queryLWEApi() throws Exception {
+        ExecutorService executorService = Executors.newFixedThreadPool(10);
+        systemExceptionMapper.insert(new SystemException("trackmore fetch LWE data begin", DateFormatUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss")));
+        RequestTask requestTask = new RequestTask();
+        requestTask.setChannel("'LWE'");
+        requestTask.setTaskStatus(2);
+        Integer integer = requestTaskService.selectRequestTasksCount(requestTask);
+        int count = integer%10==0?integer/10:integer/10 + 1;
+        for(int i=1;i<=count;i++){
+            PageHelper.startPage(i, 10, false);
+            List<RequestTask> queryTasks = requestTaskService.selectRequestTasks(requestTask);
+            if(CollectionUtils.isEmpty(queryTasks)){
+                continue;
+            }
+            StringBuffer stringBuffer = new StringBuffer();
+            for (RequestTask task:queryTasks) {
+                stringBuffer.append(task.getTrackingNumber()).append(",");
+            }
+            final String formatURL = String.format(url, stringBuffer.toString().substring(0,  stringBuffer.toString().length() - 1));
+            Future<Object> submit = executorService.submit(new Callable<Object>() {
+                @Override
+                public Object call() throws Exception {
+                    sendRequestQueryIBApi(formatURL);
+                    return null;
+                }
+            });
+            if(i%10 == 0 || i==count){
+                submit.get();
+            }
+        }
+        executorService.shutdownNow();
+        systemExceptionMapper.insert(new SystemException("trackmore fetch LWE data end", DateFormatUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss")));
+    }
+
+    public void sendRequestQueryIBApi(String url){
+        try {
+            ResponseData responseData = HttpRequestUtils.sendHttpGet(url, ibHeaders);
+            if (responseData.getStatusCode() != 200) {
+                StringBuffer sb = new StringBuffer();
+                sb.append(DateFormatUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss")).append("\n");
+                sb.append("url：" + url).append("\n");
+                sb.append("code:" + responseData.getStatusCode()).append("\n");
+                sb.append("responseText:" + responseData.getResponseText());
+                systemExceptionMapper.insert(new SystemException("LWE接口查询失败", sb.toString()));
+                return;
+            }
+            JSONObject jsonObject = JSON.parseObject(responseData.getResponseText());
+            String errorCode = jsonObject.getJSONObject("TrackDetailsResponse").getString("ErrorCode");
+            if(!"0".equals(errorCode)){
+                systemExceptionMapper.insert(new SystemException("LWE接口解析失败", responseData.getResponseText() + "\n" + url));
+                return;
+            }
+            JSONArray jsonArray = jsonObject.getJSONObject("TrackDetailsResponse").getJSONArray("EventList");
+            for(int i = 0;jsonArray != null && i<jsonArray.size();i++){
+                String trackNum = jsonArray.getJSONObject(i).getString("HawbNo");
+                JSONArray events = jsonArray.getJSONObject(i).getJSONArray("Events");
+                List<TrackLWEInfo> list = new ArrayList<>();
+                for(int j = 0;events != null && j<events.size();j++){
+                    TrackLWEInfo trackLWEInfo1 = JSON.parseObject(events.getJSONObject(j).toJSONString(), TrackLWEInfo.class);
+                    trackLWEInfo1.setStrDate(events.getJSONObject(j).getString("StrDate")+events.getJSONObject(j).getString("StrTime"));
+                    trackLWEInfo1.setHawbno(trackNum);
+                    trackLWEInfo1.setCreateTime(new Date());
+                    list.add(trackLWEInfo1);
+                }
+                saveLWEData(trackNum, list);
+            }
+        }catch (Exception ex){
+            StringBuffer sb = new StringBuffer();
+            sb.append(DateFormatUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss")).append("\n");
+            sb.append("url：" + url).append("\n");
+            sb.append("LWE接口查询失败:" + ex.getLocalizedMessage()).append("\n");
+            systemExceptionMapper.insert(new SystemException("LWE接口解析失败", sb.toString()));
+            ex.printStackTrace();
+        }
+    }
+
+
+    @Transactional(value = "transactionManager")
+    public void saveLWEData(String trackCode, List<TrackLWEInfo> list){
+        trackLWEInfoMapper.deleteByTrackNum(trackCode);
+        trackLWEInfoMapper.addBatch(list);
+    }
+
+}

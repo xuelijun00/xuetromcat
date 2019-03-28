@@ -1,0 +1,73 @@
+package com.yks.bigdata.dto.report;
+
+import java.util.Date;
+
+/**
+ * Created by liuxing on 2017/10/11.
+ */
+public class NodeDto {
+
+    private Long erp_orders_id;//订单id
+    private int node;//节点
+    private Date process_time;//节点处理时间
+    private Date orders_out_time;//发货时间
+    private Double differDay;//时间差
+    private Double rate;//比率
+    private Integer count;
+
+    public Integer getCount() {
+        return count;
+    }
+
+    public void setCount(Integer count) {
+        this.count = count;
+    }
+
+    public Double getRate() {
+        return rate;
+    }
+
+    public void setRate(Double rate) {
+        this.rate = rate;
+    }
+
+    public Long getErp_orders_id() {
+        return erp_orders_id;
+    }
+
+    public void setErp_orders_id(Long erp_orders_id) {
+        this.erp_orders_id = erp_orders_id;
+    }
+
+    public int getNode() {
+        return node;
+    }
+
+    public void setNode(int node) {
+        this.node = node;
+    }
+
+    public Date getProcess_time() {
+        return process_time;
+    }
+
+    public void setProcess_time(Date process_time) {
+        this.process_time = process_time;
+    }
+
+    public Date getOrders_out_time() {
+        return orders_out_time;
+    }
+
+    public void setOrders_out_time(Date orders_out_time) {
+        this.orders_out_time = orders_out_time;
+    }
+
+    public Double getDifferDay() {
+        return differDay;
+    }
+
+    public void setDifferDay(Double differDay) {
+        this.differDay = differDay;
+    }
+}

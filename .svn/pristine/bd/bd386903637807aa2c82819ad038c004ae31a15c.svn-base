@@ -1,0 +1,647 @@
+package com.yks.bigdata.service.trackmore.impl;
+
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.github.pagehelper.PageHelper;
+import com.yks.bigdata.common.ExceptionEnum;
+import com.yks.bigdata.common.LoopProcessConstant;
+import com.yks.bigdata.dao.ErpEOrdersProcessMapper;
+import com.yks.bigdata.dao.Erp_ordersMapper;
+import com.yks.bigdata.dao.SystemExceptionMapper;
+import com.yks.bigdata.dao.TrackmoreFetchChannelMapper;
+import com.yks.bigdata.dto.report.NodeDto;
+import com.yks.bigdata.dto.system.SystemException;
+import com.yks.bigdata.dto.trackmore.*;
+import com.yks.bigdata.service.trackmore.*;
+import com.yks.bigdata.util.DateUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateFormatUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+
+/**
+ * Created by liuxing on 2017/7/16.
+ */
+@Service
+@Scope(value = "singleton")
+public class LoopSearchServiceNewImpl implements LoopSearchService {
+
+    private static Logger log = LoggerFactory.getLogger(LoopSearchServiceNewImpl.class);
+
+    @Autowired
+    IRequestTaskService requestTaskService;
+
+    @Autowired
+    ITrackmoreAccountService trackmoreAccountService;
+
+    @Autowired
+    Tracker trackerSite;
+
+    @Autowired
+    IStatusInformationService informactionService;
+
+    @Autowired
+    ITrackSourceService trackSourceService;
+
+    @Autowired
+    ITrackInfoService infoService;
+
+    @Autowired
+    IErpOrdersService erpOrdersService;
+
+    @Autowired
+    SystemExceptionMapper systemExceptionMapper;
+
+    @Autowired
+    Erp_ordersMapper erp_ordersMapper;
+
+    @Autowired
+    ErpEOrdersProcessMapper erpEOrdersProcessMapper;
+
+    @Override
+    public void registerTrackmore() {
+        systemExceptionMapper.insert(new SystemException("trackmore register data begin","" + DateFormatUtils.format(new Date(),"yyyy-MM-dd HH:mm:ss")));
+        //0.1获取所有任务池中的所有需要注册的requst_task数据 (request_task 表 查询条件task_status 为1 )
+        List<RequestTask> registerTasks = requestTaskService.getAllNeddRegisterRequestTask();
+        //注册
+        if(!CollectionUtils.isEmpty(registerTasks))
+            registerTraceMore40(registerTasks);
+
+    }
+
+
+    public void generateFetchChannel(){
+        String sql = "truncate table trackmore_fetch_channel";
+        systemExceptionMapper.customizeSql(sql);
+
+        sql = "insert into trackmore_fetch_channel(channel,cnt,fetch_status,create_time) select channel,count(1) ct,0,NOW() from request_task  GROUP BY channel ORDER by ct";
+        systemExceptionMapper.customizeSql(sql);
+        systemExceptionMapper.insert(new SystemException("trackmore generateFetchChannel success","" + DateFormatUtils.format(new Date(),"yyyy-MM-dd HH:mm:ss")));
+    }
+
+    @Autowired
+    private TrackmoreFetchChannelMapper trackmoreFetchChannelMapper;
+
+    @Value("${fetch.thread.size}")
+    private int threadSize;
+    @Value("${fetch.type}")
+    private int fetchType;
+    @Value("${fetch.batch.pagesize}")
+    private int pagesize;//批量查询每页个数
+
+    public int getPagesize() {
+        return pagesize;
+    }
+
+    public void setPagesize(int pagesize) {
+        this.pagesize = pagesize;
+    }
+
+    public int getFetchType() {
+        return fetchType;
+    }
+
+    public void setFetchType(int fetchType) {
+        this.fetchType = fetchType;
+    }
+
+    public int getThreadSize() {
+        return threadSize;
+    }
+
+    public void setThreadSize(int threadSize) {
+        this.threadSize = threadSize;
+    }
+
+    @Override
+    public void queryTrackmore() {
+        if (!LoopProcessConstant.bo) {
+            LoopProcessConstant.started();
+            if(fetchType == 1){//POST /trackings/realtime	POST	获取运单号的实时跟踪结果
+                queryTrackmore1();
+            }else if(fetchType == 2){//GET /trackings/get	GET	获取多个运单号的物流信息
+                queryTrackmoreBatch();
+            }
+            LoopProcessConstant.stoped();
+            systemExceptionMapper.insert(new SystemException("trackmore fetch data end", "" + DateFormatUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss")));
+        }
+    }
+
+    private void queryTrackmore1() {
+        systemExceptionMapper.insert(new SystemException("trackmore fetch data begin", "" + DateFormatUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss")));
+        //LoopSearchServiceNewImpl.getStartParm().getStatus()
+        List<TrackmoreFetchChannel> trackmoreFetchChannels = trackmoreFetchChannelMapper.selectByStatus(0);
+        if(CollectionUtils.isEmpty(trackmoreFetchChannels)){
+            LoopProcessConstant.stoped();
+            systemExceptionMapper.insert(new SystemException("trackmore fetch data end", "" + DateFormatUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss")));
+            return;
+        }
+        //1、更新正在抓取状态
+        TrackmoreFetchChannel trackmoreFetchChannel = trackmoreFetchChannels.get(0);
+        trackmoreFetchChannel.setFetchStatus(1);
+        trackmoreFetchChannelMapper.updateByPrimaryKey(trackmoreFetchChannel);
+
+        //0.3获取所有任务池中的所有需要查询的requst_task数据 (request_task 表 查询条件task_status 为2 )
+        RequestTask requestTask = new RequestTask();
+        requestTask.setChannel("'" + trackmoreFetchChannel.getChannel() + "'");
+        requestTask.setTaskStatus(2);
+        Integer integer = requestTaskService.selectRequestTasksCount(requestTask);
+        int count = integer%10000==0?integer/10000:integer/10000 + 1;
+        ExecutorService executorService = Executors.newFixedThreadPool(threadSize);
+        for(int i=1;i<=count;i++){
+            PageHelper.startPage(i, 10000, true);
+            List<RequestTask> queryTasks = requestTaskService.selectRequestTasks(requestTask);
+            //List<RequestTask> queryTasks = requestTaskService.selectRequestTaskByPickup();
+            //查询
+            for (int j = 0;j<queryTasks.size();j++) {
+                try{Thread.sleep(100);}catch (Exception ex){}
+                final RequestTask task1 = queryTasks.get(j);
+                Future<Object> submit = executorService.submit(new Callable<Object>() {
+                    @Override
+                    public Object call() throws Exception {
+                        queryTrackMoreInfo(task1);
+                        return null;
+                    }
+                });
+                if(j%threadSize==0 || i==count)
+                    try{submit.get();}catch (Exception ex){}
+            }
+        }
+        executorService.shutdownNow();
+        trackmoreFetchChannel.setFetchStatus(10);
+        trackmoreFetchChannelMapper.updateByPrimaryKey(trackmoreFetchChannel);
+    }
+    //批量查询
+    private void queryTrackmoreBatch() {
+        systemExceptionMapper.insert(new SystemException("trackmore fetch batch data begin", "" + DateFormatUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss")));
+        TrackmoreAccount account = new TrackmoreAccount();
+        account.setStatus(1);
+        PageHelper.orderBy("data_count");
+        List<TrackmoreAccount> trackmoreAccounts = trackmoreAccountService.selectTrackmoreAccount(account);//查询已启用的账号
+        for (int i=0;i<trackmoreAccounts.size();i++){
+            String requestData1 =  "?page=1&limit=1&lang=cn";
+            String responseData1 = null;
+            //trackmore 接口批量查询一次2000 这次查询是为了获取分页总数
+            try{responseData1 = trackerSite.queryInfoBatch(requestData1,trackmoreAccounts.get(i).getApiKey());}catch (Exception ex){}
+            if(StringUtils.isEmpty(responseData1)){
+                systemExceptionMapper.insert(new SystemException("trackmore fetch batch data page", "" + DateFormatUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss") + requestData1));
+                return;
+            }
+
+            //该账户的分页总数
+            int pagetotal = JSON.parseObject(responseData1).getJSONObject("data").getIntValue("total");
+            pagetotal = pagetotal%pagesize==0?pagetotal/pagesize:pagetotal/pagesize+1;
+            for (int j=1;j<=pagetotal;j++){
+                try{
+                    processBathData(j, pagesize, trackmoreAccounts.get(i));
+                }catch (IOException ioEx){
+                    try{Thread.sleep(1000);}catch (Exception exa){}
+                    //如果异常，再处理一遍
+                    try{processBathData(j, pagesize, trackmoreAccounts.get(i));}catch (Exception ex){}
+                }catch (Exception ex){
+                    log.error("trackmore批量查询异常" + ex.getLocalizedMessage());
+                    systemExceptionMapper.insert(new SystemException("trackmore批量查询异常:", ex.getLocalizedMessage()));
+                    try{Thread.sleep(1000);}catch (Exception exa){}
+                }
+            }
+        }
+        systemExceptionMapper.insert(new SystemException("trackmore fetch batch data end", "" + DateFormatUtils.format(new Date(), "yyyy-MM-dd HH:mm:ss")));
+    }
+
+    private void processBathData(int j, int pagesize, TrackmoreAccount trackmoreAccount) throws Exception{
+        String requestData =  "?lang=cn&page="+ j +"&limit=" + pagesize;
+        String responseData = trackerSite.queryInfoBatch(requestData,trackmoreAccount.getApiKey());
+        if(StringUtils.isEmpty(responseData)){
+            Thread.sleep(1000);
+            return;
+        }
+        JSONObject rootObject = JSON.parseObject(responseData);
+        JSONArray jsonArray = rootObject.getJSONObject("data").getJSONArray("items");
+        ExecutorService executorService = Executors.newFixedThreadPool(threadSize);
+        Future<Object> submit = null;
+        for(int z=0;z<jsonArray.size();z++){
+            RequestTask task1 = new RequestTask();
+            final JSONObject jsonObject = jsonArray.getJSONObject(z);
+            String tracking_number = jsonObject.getString("tracking_number");
+            task1.setTrackingNumber(tracking_number);
+            List<RequestTask> requestTasks = requestTaskService.selectRequestTasks(task1);//检查物流单号是否在系统中
+            if(CollectionUtils.isEmpty(requestTasks)){
+                continue;
+            }
+            final RequestTask task2 = requestTasks.get(0);
+            submit = executorService.submit(new Callable<Object>() {
+                @Override
+                public Object call() throws Exception {
+                    processTrackmoreJson(jsonObject, task2);
+                    return null;
+                }
+            });
+        }
+        submit.get();
+        executorService.shutdownNow();
+    }
+
+    @Override
+    public void loop() {
+        /*//注册
+        registerTrackmore();
+        try{Thread.sleep(1000);}catch(Exception ex){}
+        //查询
+        queryTrackmore();*/
+    }
+
+    /**
+     * 接口一次性只能注册40个物流单
+     * @param registerTasks
+     */
+    private synchronized void registerTraceMore40(List<RequestTask> registerTasks){
+        List<List<RequestTask>> lists = splitTraceMore(registerTasks);
+        for (List<RequestTask> list:lists) {
+            try{
+                TrackmoreAccount account = trackmoreAccountService.selectAvailableAccount();
+                if(account == null){
+                    systemExceptionMapper.insert(new SystemException("trackmore注册失败","没有可用额度账号注册"));
+                    return;
+                }
+                String requestData = createRequestData(list);
+                if(trackerSite.registerLogisticsProjectBatch(requestData, account.getApiKey())){
+                    //创建成功 更新状态为2 标记是那个账号创建成功
+                    requestTaskService.updateStatusRegister1(setRequestTaskAccount(list,account.getAccount()));
+                    //减少额度
+                    trackmoreAccountService.reduceDataCount(account.getId(),account.getDataCount() - list.size());
+                    systemExceptionMapper.insert(new SystemException("trackmore注册成功","账号：" + account.getAccount() + "额度：" + (account.getDataCount() - list.size())));
+                }else{
+                    //创建物流项目失败 更新状态为4
+                    requestTaskService.updateStatusRegisterFailed(list);
+                    systemExceptionMapper.insert(new SystemException("trackmore注册失败","账号：" + account.getAccount()));
+                }
+                //generateFetchChannel();
+            }catch (Exception ex){
+                log.error("注册异常" + ex.getLocalizedMessage());
+                systemExceptionMapper.insert(new SystemException("注册异常",ex.getLocalizedMessage()));
+            }
+        }
+    }
+    private List<RequestTask> setRequestTaskAccount(List<RequestTask> list, String account){
+        for (RequestTask requestTask:list) {
+            requestTask.setTrackAccount(account);
+        }
+        return list;
+    }
+
+    /**
+     * 查询物流信息
+     * @param task
+     * @throws Exception
+     */
+    private void queryTrackMoreInfo(RequestTask task){
+        String requestData = "{\"tracking_number\":\"" + task.getTrackingNumber() + "\",\"carrier_code\":\"" + task.getCarrierCode() + "\",\"lang\":\"cn\"}";
+        TrackmoreAccount trackmoreAccount = trackmoreAccountService.selectByAccount(task.getTrackAccount());
+        String responseData = null;
+        try{
+            //处理trackmore查询异常，如果异常则处理下一条记录
+            responseData = trackerSite.queryInfo(requestData, trackmoreAccount.getApiKey());
+        }catch (Exception ex){
+            log.error("trackmore查询异常" + ex.getLocalizedMessage());
+            systemExceptionMapper.insert(new SystemException("trackmore查询异常:" + task.getTrackingNumber(), ex.getLocalizedMessage() + "请求数据：" + requestData));
+            return;
+        }
+        if(StringUtils.isEmpty(responseData)){
+            systemExceptionMapper.insert(new SystemException("trackmore查询异常:" + task.getTrackingNumber(), "查询数据为空"));
+            return;
+        }
+        try{
+            JSONObject item = JSON.parseObject(responseData).getJSONObject("data").getJSONArray("items").getJSONObject(0);
+            processTrackmoreJson(item, task);
+        }catch (Exception ex){
+            log.error("trackmore查询异常" + ex.getLocalizedMessage());
+            systemExceptionMapper.insert(new SystemException("解析trackmore异常:" + task.getTrackingNumber(), ex.getLocalizedMessage() + "数据：" + responseData));
+            return;
+        }
+    }
+
+    @Override
+    public void processTrackmoreJson(JSONObject item, RequestTask task) throws Exception{
+        if(item == null || StringUtils.isEmpty(item.toJSONString())){
+            return;//抓取失败不做任何动作，下次继续抓取
+        }
+        RequestTask task1 = new RequestTask();
+        task1.setId(task.getId());
+        task1.setFetchTime(new Date());
+        requestTaskService.updateByPrimaryKeySelective(task1);//更新抓取时间
+        if(isFinish(item)){
+            task.setTaskStatus(5); //2.1.1 request_task标记该条数据task_status=5 表示已经完结
+            requestTaskService.updateStatusFinish(task);//任务标记为已完结
+        }
+        saveTrackJson(task, item);
+    }
+
+    /**
+     * 判断是否完结
+     * 判断标准 返回的json串中的status为delivered
+     * @param item
+     * @return
+     */
+    private boolean isFinish(JSONObject item) {
+        String status = item.getString("status");
+        ErpOrders orders = new ErpOrders();
+        orders.setOrdersMailCode(item.getString("tracking_number"));
+        if (StringUtils.equals(status, "delivered")) {
+            return true;
+        } else  if (StringUtils.equals(status, "notfound")) {//查询不到
+            orders.setExceptionStatus(ExceptionEnum.TRACKMORE_NOT_FOUND.getValue());
+            erp_ordersMapper.updateExceptionStatus(orders);
+            return false;
+        } else  if (StringUtils.equals(status, "undelivered")) {//妥投失败
+            orders.setExceptionStatus(ExceptionEnum.trackmore_undelivered.getValue());
+            erp_ordersMapper.updateExceptionStatus(orders);
+            return false;
+        }else  if (StringUtils.equals(status, "exception")) {//异常
+            orders.setExceptionStatus(ExceptionEnum.trackmore_exception.getValue());
+            erp_ordersMapper.updateExceptionStatus(orders);
+            return false;
+        }else  if (StringUtils.equals(status, "expired")) {//运输过久
+            orders.setExceptionStatus(ExceptionEnum.trackmore_expired.getValue());
+            erp_ordersMapper.updateExceptionStatus(orders);
+            return false;
+        }else  if (StringUtils.equals(status, "pickup")) {//到达代取
+            orders.setExceptionStatus(ExceptionEnum.trackmore_pickup.getValue());
+            erp_ordersMapper.updateExceptionStatus(orders);
+            return false;
+        } else{
+            return false;
+        }
+    }
+
+    private void saveTrackJson(RequestTask task, JSONObject item) throws Exception {
+        //未完结
+        //2.2.1 将结果写入或者更新 track_info 和 track_info_detail
+        infoService.saveOrUpdateInfoAndDetail(task, item);
+        //2.2.2 将结果写入track_source中
+        trackSourceService.add(task, item.toJSONString());
+        //2.2.3.依据状态表logistics_status中的状态标记,进行标记数据,erp_orders字段`track_status`标记对应的值
+        judeStateException(task, item);
+    }
+
+    @Transactional("transactionManager")
+    private ErpOrders processTrackmoreSource(List<JSONObject> jsonObjects, List<LogisticsStatus> statusList, ErpOrders erpOrders, int taskStatus){
+        Map<Integer, ErpEOrdersProcess> processMap = new HashMap<>();
+        for (int i=jsonObjects.size()-1;i>=0;i--){//因为数据是倒序的，现在倒着遍历就成 顺序的
+            processMap = getStatus(statusList, jsonObjects.get(i), erpOrders, processMap);
+        }
+        /*补时间*/
+        for (int i=1;i<=erpOrders.getTrackStatus();i++){
+            ErpEOrdersProcess erpEOrdersProcess1 = processMap.get(i);
+            if(erpEOrdersProcess1 == null){
+                ErpEOrdersProcess erpEOrdersProcess2 = processMap.get(i + 1);
+                if(erpEOrdersProcess2 != null && erpEOrdersProcess2.getProcessTime() != null){
+                    Date date = this.getDate(erpEOrdersProcess2.getProcessTime(), jsonObjects);
+                    ErpEOrdersProcess erpEOrdersProcess = new ErpEOrdersProcess();
+                    erpEOrdersProcess.setErpOrdersId(erpOrders.getErpOrdersId());
+                    erpEOrdersProcess.setCreateTime(new Date());
+                    erpEOrdersProcess.setNodeStatus(i);
+                    erpEOrdersProcess.setProcessTime(date);
+                    processMap.put(i,erpEOrdersProcess);
+                }
+            }
+        }
+        /*计算最后一个时间*/
+        if(taskStatus == 5 && statusList.size() != processMap.size() && processMap.get(statusList.size()) == null){
+            ErpEOrdersProcess erpEOrdersProcess = new ErpEOrdersProcess();
+            erpEOrdersProcess.setErpOrdersId(erpOrders.getErpOrdersId());
+            erpEOrdersProcess.setCreateTime(new Date());
+            erpEOrdersProcess.setNodeStatus(statusList.size());
+
+            Date date = null;
+            try{date = DateUtils.formmatStr(jsonObjects.get(0).getString("Date"), "yyyy-MM-dd HH:mm");}catch (Exception ex){}
+            erpEOrdersProcess.setProcessTime(date);
+            processMap.put(statusList.size(),erpEOrdersProcess );
+        }
+        /*保存各节点时间*/
+        erpEOrdersProcessMapper.deleteByErpOrderId(erpOrders.getErpOrdersId());
+        for (Map.Entry<Integer,ErpEOrdersProcess> entry:processMap.entrySet()){
+            erpEOrdersProcessMapper.insert(entry.getValue());
+        }
+        return erpOrders;
+    }
+
+    public Date getDate(Date dateParm,List<JSONObject> jsonObjects){
+        String dateStr = DateFormatUtils.format(dateParm, "yyyy-MM-dd HH:mm");
+        for (int i=0;i<jsonObjects.size();i++){
+            try{
+                Date date = DateUtils.formmatStr(jsonObjects.get(i).getString("Date"), "yyyy-MM-dd HH:mm");
+                String dateStr1 = DateFormatUtils.format(date, "yyyy-MM-dd HH:mm");
+                if(dateStr1.equals(dateStr)){
+                    return DateUtils.formmatStr(jsonObjects.get(i+1).getString("Date"), "yyyy-MM-dd HH:mm");
+                }
+            }catch (Exception ex){}
+        }
+        return null;
+    }
+
+    /**
+     * 排序
+     * @param item
+     * @throws Exception
+     */
+    public List<JSONObject> sortDate(JSONObject item)throws Exception{
+        //检查是否有物流信息
+        JSONObject origin_info = item.getJSONObject("origin_info");
+        JSONObject destination_info = item.getJSONObject("destination_info");
+        if(origin_info == null && destination_info == null){//无信息
+            return null;
+        }
+        List<JSONObject> jsonObjects = new ArrayList<>();
+
+        if(origin_info != null){
+            JSONArray trackinfo = origin_info.getJSONArray("trackinfo");
+            for (int i=0;trackinfo != null && i<trackinfo.size();i++){
+                jsonObjects.add(trackinfo.getJSONObject(i));
+            }
+        }
+        if(destination_info != null){
+            JSONArray trackinfo1 = destination_info.getJSONArray("trackinfo");
+            for (int i=0;trackinfo1 != null && i<trackinfo1.size();i++){
+                jsonObjects.add(trackinfo1.getJSONObject(i));
+            }
+        }
+        if(CollectionUtils.isEmpty(jsonObjects)){
+            return null;
+        }
+        for (int i=0;i<jsonObjects.size();i++){
+            long dateLong = 0l;
+            try{dateLong = DateUtils.formmatStr(jsonObjects.get(i).getString("Date"), "yyyy-MM-dd HH:mm").getTime();}catch (Exception ex){}
+            for(int j=0;j<jsonObjects.size();j++){
+                long date = 0l;
+                try{date = DateUtils.formmatStr(jsonObjects.get(j).getString("Date"), "yyyy-MM-dd HH:mm").getTime();}catch (Exception ex){}
+                if(date < dateLong || dateLong == 0l){
+                    JSONObject object2 = jsonObjects.get(i);
+                    jsonObjects.set(i, jsonObjects.get(j));
+                    jsonObjects.set(j, object2);
+                }
+            }
+        }
+        return jsonObjects;
+    }
+
+    /**
+     * 判断订单异常
+     * 标准 :
+     * state=10 未上网 判断response 是否含有Pickup shipment checked in at时间为 48
+     * state=11 未封发 判断response 是否含有Shipment designated to时间为 72
+     * state=12 未交航 判断response 是否含有Shipment arrived at airport时间为 96
+     * state=13 未到目的国 判断response 是否含有Custom cleared and arrived at时间为 120
+     * state=14 未妥投 判断response 是否含有DELIVERE DSHIPMENT DELIVERED时间为 144
+     *
+     * @param task
+     * @param item
+     */
+    private ErpOrders judeStateException( RequestTask task, JSONObject item) throws Exception {
+        ErpOrders erpOrders = erpOrdersService.selectOrderByOrderId(task.getErpOrdersId());
+        int erpStatus = erpOrders.getTrackStatus();
+        Long minus = System.currentTimeMillis() - erpOrders.getOrdersExportTime().getTime();
+
+        //检查渠道是否有匹配状态
+        List<LogisticsStatus> logisticsStatuses = informactionService.selectByChannel(task.getChannel());
+        if (CollectionUtils.isEmpty(logisticsStatuses)){
+            log.info("该request task 没有查找到合适的状态 (上网 交航等) : request task id为:" + task.getId() + "\n 返回的json串为:" + item.toJSONString());
+            erpOrders.setTrackStatus(ExceptionEnum.NOT_FOUND_LOGISTICS_STATUS.getValue());
+            erpOrdersService.updateTrackmoreStatus(erpOrders);
+            return erpOrders;
+        }
+        //冒泡排序记录和判断信息是否为空
+        List<JSONObject> jsonObjects = this.sortDate(item);
+        if(CollectionUtils.isEmpty(jsonObjects)){
+            return erpOrders;
+        }
+        erpOrders = this.processTrackmoreSource(jsonObjects, logisticsStatuses, erpOrders, task.getTaskStatus());
+        //erpOrders.setExceptionStatus(getExceptionStatus(status, minus));
+        if(erpStatus != erpOrders.getTrackStatus())//判断是否计算出状态，如果有则更新
+            erpOrdersService.updateErpOrders(erpOrders);//标记状态 和时间
+        return erpOrders;
+    }
+
+    private Map<Integer,ErpEOrdersProcess> getStatus(List<LogisticsStatus> statusList, JSONObject jsonObject, ErpOrders erpOrders, Map<Integer,ErpEOrdersProcess> processMap){
+        String statusDescription = jsonObject.getString("StatusDescription") + "," +jsonObject.getString("Details");
+        for (LogisticsStatus logisticsStatus:statusList) {
+            if(splitStatus(logisticsStatus,statusDescription)){
+                ErpEOrdersProcess erpEOrdersProcess = new ErpEOrdersProcess();
+                erpEOrdersProcess.setErpOrdersId(erpOrders.getErpOrdersId());
+                erpEOrdersProcess.setCreateTime(new Date());
+                erpEOrdersProcess.setNodeStatus(logisticsStatus.getSort());
+                Date date = null;
+                try{date = DateUtils.formmatStr(jsonObject.getString("Date"),"yyyy-MM-dd HH:mm");}catch (Exception ex){log.error("判断状态时间转换异常");}
+                erpEOrdersProcess.setProcessTime(date);
+                processMap.put(logisticsStatus.getSort(),erpEOrdersProcess);
+                erpOrders.setTrackStatus(logisticsStatus.getSort());
+            }
+        }
+        return processMap;
+    }
+
+    private boolean splitStatus(LogisticsStatus logisticsStatus,String desc){
+        String excludeKeyword = logisticsStatus.getExcludeKeyword();
+        if(!StringUtils.isEmpty(excludeKeyword)){
+            String[] excludeKeywords = excludeKeyword.split("/");
+            for(int i=0;i<excludeKeywords.length;i++){
+                if(desc.toLowerCase().contains(excludeKeywords[i].trim().toLowerCase())){//如果这条记录包含了要排除的某个关键字就 排除这条记录
+                    return false;
+                }
+            }
+        }
+        String keyword = logisticsStatus.getKeyword();
+        if(!StringUtils.isEmpty(keyword)){
+            String[] split = keyword.split("/");
+            for(int i=0;i<split.length;i++){
+                if(desc.toLowerCase().contains(split[i].trim().toLowerCase())){//如果包含了某个关键字，就确定该状态
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 判断状态异常
+     * @param status
+     * @param minus
+     * @return
+     */
+    /*private Integer getExceptionStatus(Integer status, Long minus){
+        int exceptionStatus = 0;
+        if(status == 1 && minus >= 72 * 3600 * 1000){
+            exceptionStatus = ExceptionEnum.TRACKMORE_STATUS11.getValue();//上网了 未封发
+        }else if(status == 2 && minus >= 96 * 3600 * 1000){
+            exceptionStatus = ExceptionEnum.TRACKMORE_STATUS12.getValue();//封发了 未交航
+        }else if(status == 3 && minus >= 120 * 3600 * 1000){
+            exceptionStatus = ExceptionEnum.TRACKMORE_STATUS13.getValue();//交航 未落地
+        }else if(status == 4 && minus >= 144 * 3600 * 1000){
+            exceptionStatus = ExceptionEnum.TRACKMORE_STATUS14.getValue();//落地 未妥投
+        }else if(status == 803 && minus >= 48 * 3600 * 1000){
+            exceptionStatus = ExceptionEnum.TRACKMORE_STATUS10.getValue();//上网
+        }
+        return exceptionStatus;
+    }*/
+
+    /**
+     * 切分注册数据
+     * 40个账号切分一次
+     * @param registerTasks
+     * @return
+     */
+    private List<List<RequestTask>> splitTraceMore(List<RequestTask> registerTasks) {
+        if (registerTasks == null || registerTasks.size() == 0) {
+            return null;
+        }
+        ArrayList<List<RequestTask>> result = new ArrayList<List<RequestTask>>();
+        ArrayList<RequestTask> ordersList = new ArrayList<RequestTask>();
+        for (int i = 0; i < registerTasks.size(); i++) {
+            RequestTask task = registerTasks.get(i);
+            ordersList.add(task);
+            //满40个使用另外一个ordersList
+            if (ordersList.size() == 40) {
+                result.add(ordersList);
+                ordersList = new ArrayList<RequestTask>();
+            }
+        }
+        if (ordersList.size() != 0) {
+            result.add(ordersList);
+        }
+        return result;
+    }
+
+    /**
+     * 生成 track more接口的请求json
+     *
+     * @param registerTasks
+     * @return
+     */
+    private String createRequestData(List<RequestTask> registerTasks) {
+        if(CollectionUtils.isEmpty(registerTasks))
+            return "";
+        StringBuilder sb = new StringBuilder("[");
+        for (int i = 0; i < registerTasks.size(); i++) {
+            RequestTask task = registerTasks.get(i);
+            sb.append("{\"tracking_number\": \"" + task.getTrackingNumber() + "\",\"carrier_code\":\"" + task.getCarrierCode() + "\"}");
+            if(i != registerTasks.size() - 1)
+                sb.append(",");
+        }
+        sb.append("]");
+        return sb.toString();
+    }
+
+}

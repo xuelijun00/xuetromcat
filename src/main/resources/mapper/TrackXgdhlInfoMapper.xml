@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yks.bigdata.dao.TrackXgdhlInfoMapper">
+  <resultMap id="BaseResultMap" type="com.yks.bigdata.dto.trackmore.TrackXgdhlInfo">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="shipment_id" jdbcType="VARCHAR" property="shipmentId" />
+    <result column="tracking_id" jdbcType="VARCHAR" property="trackingId" />
+    <result column="order_number" jdbcType="VARCHAR" property="orderNumber" />
+    <result column="consignment_note_number" jdbcType="VARCHAR" property="consignmentNoteNumber" />
+    <result column="country_code" jdbcType="VARCHAR" property="countryCode" />
+    <result column="weight" jdbcType="DOUBLE" property="weight" />
+    <result column="weightUnit" jdbcType="VARCHAR" property="weightunit" />
+    <result column="status" jdbcType="VARCHAR" property="status" />
+    <result column="description" jdbcType="VARCHAR" property="description" />
+    <result column="timestamp" jdbcType="TIMESTAMP" property="timestamp" />
+    <result column="timezone" jdbcType="VARCHAR" property="timezone" />
+    <result column="address" jdbcType="VARCHAR" property="address" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, shipment_id, tracking_id, order_number, consignment_note_number, country_code, 
+    weight, weightUnit, status, description, timestamp, timezone, address, create_time
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from track_xgdhl_info
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from track_xgdhl_info
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <delete id="deleteByTrackNum" parameterType="java.lang.String" >
+    delete from track_xgdhl_info
+    where shipment_id = #{shipmentId,jdbcType=VARCHAR}
+  </delete>
+
+  <insert id="addBatch" parameterType="java.util.List" >
+    insert into track_xgdhl_info ( shipment_id, tracking_id,
+    order_number, consignment_note_number, country_code,
+    weight, weightUnit, status,
+    description, timestamp, timezone,
+    address, create_time)
+    values
+    <foreach collection="list" index="index" item="item" open="" close="" separator=",">
+      (#{item.shipmentId,jdbcType=VARCHAR}, #{item.trackingId,jdbcType=VARCHAR},
+      #{item.orderNumber,jdbcType=VARCHAR}, #{item.consignmentNoteNumber,jdbcType=VARCHAR}, #{item.countryCode,jdbcType=VARCHAR},
+      #{item.weight,jdbcType=DOUBLE}, #{item.weightunit,jdbcType=VARCHAR}, #{item.status,jdbcType=VARCHAR},
+      #{item.description,jdbcType=VARCHAR}, #{item.timestamp,jdbcType=TIMESTAMP}, #{item.timezone,jdbcType=VARCHAR},
+      #{item.address,jdbcType=VARCHAR}, #{item.createTime,jdbcType=TIMESTAMP})
+    </foreach>
+  </insert>
+
+  <insert id="insert" parameterType="com.yks.bigdata.dto.trackmore.TrackXgdhlInfo">
+    insert into track_xgdhl_info (id, shipment_id, tracking_id, 
+      order_number, consignment_note_number, country_code, 
+      weight, weightUnit, status, 
+      description, timestamp, timezone, 
+      address, create_time)
+    values (#{id,jdbcType=INTEGER}, #{shipmentId,jdbcType=VARCHAR}, #{trackingId,jdbcType=VARCHAR}, 
+      #{orderNumber,jdbcType=VARCHAR}, #{consignmentNoteNumber,jdbcType=VARCHAR}, #{countryCode,jdbcType=VARCHAR}, 
+      #{weight,jdbcType=DOUBLE}, #{weightunit,jdbcType=VARCHAR}, #{status,jdbcType=VARCHAR}, 
+      #{description,jdbcType=VARCHAR}, #{timestamp,jdbcType=TIMESTAMP}, #{timezone,jdbcType=VARCHAR}, 
+      #{address,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="com.yks.bigdata.dto.trackmore.TrackXgdhlInfo">
+    insert into track_xgdhl_info
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="shipmentId != null">
+        shipment_id,
+      </if>
+      <if test="trackingId != null">
+        tracking_id,
+      </if>
+      <if test="orderNumber != null">
+        order_number,
+      </if>
+      <if test="consignmentNoteNumber != null">
+        consignment_note_number,
+      </if>
+      <if test="countryCode != null">
+        country_code,
+      </if>
+      <if test="weight != null">
+        weight,
+      </if>
+      <if test="weightunit != null">
+        weightUnit,
+      </if>
+      <if test="status != null">
+        status,
+      </if>
+      <if test="description != null">
+        description,
+      </if>
+      <if test="timestamp != null">
+        timestamp,
+      </if>
+      <if test="timezone != null">
+        timezone,
+      </if>
+      <if test="address != null">
+        address,
+      </if>
+      <if test="createTime != null">
+        create_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="shipmentId != null">
+        #{shipmentId,jdbcType=VARCHAR},
+      </if>
+      <if test="trackingId != null">
+        #{trackingId,jdbcType=VARCHAR},
+      </if>
+      <if test="orderNumber != null">
+        #{orderNumber,jdbcType=VARCHAR},
+      </if>
+      <if test="consignmentNoteNumber != null">
+        #{consignmentNoteNumber,jdbcType=VARCHAR},
+      </if>
+      <if test="countryCode != null">
+        #{countryCode,jdbcType=VARCHAR},
+      </if>
+      <if test="weight != null">
+        #{weight,jdbcType=DOUBLE},
+      </if>
+      <if test="weightunit != null">
+        #{weightunit,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null">
+        #{status,jdbcType=VARCHAR},
+      </if>
+      <if test="description != null">
+        #{description,jdbcType=VARCHAR},
+      </if>
+      <if test="timestamp != null">
+        #{timestamp,jdbcType=TIMESTAMP},
+      </if>
+      <if test="timezone != null">
+        #{timezone,jdbcType=VARCHAR},
+      </if>
+      <if test="address != null">
+        #{address,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.yks.bigdata.dto.trackmore.TrackXgdhlInfo">
+    update track_xgdhl_info
+    <set>
+      <if test="shipmentId != null">
+        shipment_id = #{shipmentId,jdbcType=VARCHAR},
+      </if>
+      <if test="trackingId != null">
+        tracking_id = #{trackingId,jdbcType=VARCHAR},
+      </if>
+      <if test="orderNumber != null">
+        order_number = #{orderNumber,jdbcType=VARCHAR},
+      </if>
+      <if test="consignmentNoteNumber != null">
+        consignment_note_number = #{consignmentNoteNumber,jdbcType=VARCHAR},
+      </if>
+      <if test="countryCode != null">
+        country_code = #{countryCode,jdbcType=VARCHAR},
+      </if>
+      <if test="weight != null">
+        weight = #{weight,jdbcType=DOUBLE},
+      </if>
+      <if test="weightunit != null">
+        weightUnit = #{weightunit,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null">
+        status = #{status,jdbcType=VARCHAR},
+      </if>
+      <if test="description != null">
+        description = #{description,jdbcType=VARCHAR},
+      </if>
+      <if test="timestamp != null">
+        timestamp = #{timestamp,jdbcType=TIMESTAMP},
+      </if>
+      <if test="timezone != null">
+        timezone = #{timezone,jdbcType=VARCHAR},
+      </if>
+      <if test="address != null">
+        address = #{address,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.yks.bigdata.dto.trackmore.TrackXgdhlInfo">
+    update track_xgdhl_info
+    set shipment_id = #{shipmentId,jdbcType=VARCHAR},
+      tracking_id = #{trackingId,jdbcType=VARCHAR},
+      order_number = #{orderNumber,jdbcType=VARCHAR},
+      consignment_note_number = #{consignmentNoteNumber,jdbcType=VARCHAR},
+      country_code = #{countryCode,jdbcType=VARCHAR},
+      weight = #{weight,jdbcType=DOUBLE},
+      weightUnit = #{weightunit,jdbcType=VARCHAR},
+      status = #{status,jdbcType=VARCHAR},
+      description = #{description,jdbcType=VARCHAR},
+      timestamp = #{timestamp,jdbcType=TIMESTAMP},
+      timezone = #{timezone,jdbcType=VARCHAR},
+      address = #{address,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>

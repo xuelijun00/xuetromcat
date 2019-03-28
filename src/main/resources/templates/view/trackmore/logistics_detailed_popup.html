@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8" />
+    <title>YKSUI框架 - 需求管理</title>
+    <script src="jsLoad/code/load.js?20170116" th:src="@{/jsLoad/code/load.js}" include="../top.html"></script>
+    <!--加css-->
+</head>
+<body class="gray-bg">
+<div class="wrapper wrapper-content">
+    <div class="row">
+        <div class="col-sm-12">
+            <p>
+            <strong>发件国</strong>
+            <div  th:each="user,userStat : ${detailedInfo}">
+                <div class="ibox-content timeline" th:if="${user.trackType == 1}">
+                    <div class="timeline-item" >
+                        <div class="row">
+                            <div class="col-xs-3 date" th:text="${user.trackDate != null?#dates.format(user.trackDate,'yyyy-MM-dd HH:mm:ss'):''}">
+                            </div>
+                            <div class="col-xs-7 content">
+                                <p class="m-b-xs"><strong th:text="${user.details != null?user.details:''}">开会</strong></p>
+                                <p th:text="${user.statusDescription != null?user.statusDescription:''}"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </p>
+
+<p>
+    <strong>目的国</strong>
+    <div  th:each="user,userStat : ${detailedInfo}">
+        <div class="ibox-content timeline" th:if="${user.trackType == 2}">
+            <div class="timeline-item" >
+                <div class="row">
+                    <div class="col-xs-3 date" th:text="${user.trackDate != null?#dates.format(user.trackDate,'yyyy-MM-dd HH:mm:ss'):''}">
+                    </div>
+                    <div class="col-xs-7 content">
+                        <p class="m-b-xs"><strong th:text="${user.details != null?user.details:''}">开会</strong></p>
+                        <p th:text="${user.statusDescription != null?user.statusDescription:''}"></p>
+                     </div>
+                 </div>
+             </div>
+        </div>
+     </div>
+</p>
+
+
+        </div>
+    </div>
+</div>
+<script src="jsLoad/code/load.js?20170116" th:src="@{/jsLoad/code/load.js}" include="../js.html"></script>
+<!--加本页面 的js文件与js代码-->
+<script src="js/chosen.js" th:src="@{/js/chosen.js}"></script>
+</body>
+</html>

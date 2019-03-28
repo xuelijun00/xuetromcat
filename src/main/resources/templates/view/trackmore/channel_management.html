@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="utf-8"></meta>
+<title>YKS物流信息状态查询系统</title>
+<script th:src="@{/jsLoad/code/load.js}" src="jsLoad/code/load.js" include="../top.html"></script>
+</head>
+<body class="gray-bg">
+<div class="wrapper wrapper-content">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>物流渠道管理</h5>
+                </div>
+                <div class="ibox-content">
+                    <form class="form-inline request" method="get" th:action="@{/LogisticChannel/view}" id="form">
+                        <div class="form-group">
+                            <label>快递商简码：</label>
+                            <select class="chosen-select form-control"
+                                    data-placeholder="请选择" tabindex="-1" name="shortCode"
+                                    data-name-group="common" >
+                                <option value="" >请选择</option>
+                                <div th:each="channel,channelState:${channels}">
+                                    <option value="" th:value="${channel.shortCode}" th:selected="(${channel.shortCode} == ${channelParam.shortCode})" th:text="${channel.shortCode}"></option>
+                                </div>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>快递商英文名称</label>
+                            <input type="text" class="form-control"  id="englishName" name="englishName"   th:value="${channelParam.englishName}"/>
+                        </div>
+
+                        <div class="form-group">
+                            <label> 快递商中文名称</label>
+                            <input type="text" class="form-control"  id="chinessName" name="chinessName"  th:value="${channelParam.chinessName}" />
+                        </div>
+
+                        <div class="form-group">
+                            <label>公司定义的物流渠道名称</label>
+                            <input type="text" class="form-control"  id="yksChannelName" name="yksChannelName"  th:value="${channelParam.yksChannelName}" />
+                        </div>
+
+
+                        <div class="form-group">
+                            <label>开始日期：</label>
+                            <input type="text" class="form-control" th:value="${channelParam.startTime}" name="startTime" id="start_date"/>
+                        </div>
+                        <div class="form-group">
+                            <label>结束日期：</label>
+                            <input type="text" class="form-control" th:value="${channelParam.endTime}" name="endTime" id="end_date"/>
+                        </div>
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">查询</button>
+                        </div>
+                    </form>
+                    <div class="hr-line-dashed"></div>
+                    <div class="mbottom">
+                        <a href="javascript:;" onclick="common.showAddOrEdit('新增物流渠道','common?path=trackmore/channel_management_add_or_edit')"
+                        th:onclick="'javascripe:common.showAddOrEdit(\'新增物流渠道\',\'' + @{/common?path=trackmore/channel_management_add_or_edit} + '\')'">
+                            <i class="fa fa-plus"></i>新增物流渠道</a>
+                        <a href="javascript:;" onclick="" th:onclick="'javascript:channelManagement.downloadCsv();'">
+                            <i class="fa fa-download"></i>下载csv</a>
+                        <a href="javascript:;" onclick="" th:onclick="'javascript:channelManagement.showUpload();'">
+                            <i class="fa fa-upload"></i>批量导入</a>
+                    </div>
+                    <table class="table table-striped table-bordered table-hover">
+                        <thead>
+                        <tr>
+                            <th width="50">序号</th>
+                            <th>yks物流渠道简码</th>
+                            <th>yks物流渠道名称</th>
+                            <th>快递商简码</th>
+                            <th>快递商英文名称</th>
+                            <th>快递商中文名称</th>
+                            <th>状态</th>
+                            <th>创建时间</th>
+                            <th>操作</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <!--<tr th:each="channel,channelState:${table.rows}">
+                            <td th:text="${channelState.index + 1}">1</td>
+                            <td th:text="${channel.yksChannelCode}">hd,GoPro</td>
+                            <td th:text="${channel.shortCode}">bluesdf</td>
+                            <td th:text="${channel.englishName}">sdafks</td>
+                            <td th:text="${channel.chinessName}">adfdsa</td>
+                            <td th:text="(${channel.status} == 1?'启用':'禁用')">adfdsa</td>
+                            <td th:text="${channel.createTime}">2017-02-20 16:27:50</td>
+                            <td><div class="dropdown">
+                                <button class="btn btn-sm btn-info dropdown-toggle" type="button" id="dropdownMenu1"
+                                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">操作
+                                    <span class="caret"></span>
+                                </button>
+                                <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+                                    <li><a onclick="common.showAddOrEdit('修改物流渠道','/common?path=trackmore/channel_management_add_or_edit&amp;status=edit')"
+                                            th:onclick="'javascript:common.showAddOrEdit(\'修改物流渠\',\'' + @{/LogisticChannel/updateview?status=init&amp;id=} + ${channel.id} + '\')'"
+                                    >修改</a></li>
+                                    <li><a onclick="" th:onclick="'javascript:channelManagement.disableOrEnabled(\'' + @{/LogisticChannel/disable/} + ${channel.id} + '\')'">禁用</a></li>
+                                    <li><a onclick=""  th:onclick="'javascript:channelManagement.disableOrEnabled(\'' + @{/LogisticChannel/enabled/} + ${channel.id} + '\')'">启用</a></li>
+                                </ul>
+                            </div></td>
+                        </tr>-->
+                        </tbody>
+                    </table>
+                    <div class="row" >
+                        <div class="col-md-6 pull-left top20 " >
+                            <input id="curPage" th:value="${table.page}" type="hidden"/>
+                            <input id="pagetotal" th:value="${table.total}" type="hidden"/>
+                            <label id="pageinfo">每页 <select class="input-sm" id="pagesize" onclick="channelManagement.pageSizeChange(this)">
+                                <option value="10">10</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option></select> 条记录 显示 <em th:text="${(table.page - 1) * 10 + 1}"></em> 到 <em th:text="${table.page * 10 }"></em> 项，共 <em th:text="${table.records}"></em>项</label>
+                        </div>
+                        <div class="col-md-6 pull-right text-right" >
+                            <div id="page"></div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<input id="layerwin" value="" type="hidden"/>
+<script th:src="@{/jsLoad/code/load.js}" src="jsLoad/code/load.js" include="../js.html"></script>
+<!--加本页面 的js文件与js代码-->
+<script th:src="@{/js/chosen.js}" src="js/chosen.js"></script>
+<script th:inline="javascript" th:src="@{/js/trackmore/common.js}" ></script>
+<script th:inline="javascript" th:src="@{/js/trackmore/channel_management.js}" ></script>
+</body>
+</html>

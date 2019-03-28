@@ -1,0 +1,123 @@
+body {
+  width: 100%;
+  height: 100%;
+  color:#333;
+}
+
+.background {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  margin: 0;
+  padding: 0;
+}
+.bg-login {
+  position: absolute;
+  padding: 45px 15px 15px;
+  border-color: #e5e5e5 #eee #eee;
+  border-style: solid;
+  border-width: 1px 0;
+  border-radius: 30px;
+  -webkit-box-shadow: inset 0 3px 6px rgba(0, 0, 0, .05);
+  box-shadow: inset 0 3px 6px rgba(0, 0, 0, .05);
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  margin: auto;
+  width: 500px;
+  height:300px;
+}
+.bg-login h2 {
+  font-size:24px;
+  padding-bottom:20px;
+  margin-bottom:20px;
+  border-bottom:solid 1px #286294;
+  font-weight: bold;
+  text-align: center;
+  color:#286294;
+}
+.bg-login ul {
+  clear: both;
+  margin: 0 40px;
+}
+.bg-login ul li {
+  line-height: 20px;
+  height: 45px;
+  float: left;
+}
+.bg-login ul li.row1 {
+  width: 100px;
+  text-align: right;
+  padding-right: 10px;
+  font-family: "微软雅黑";
+  font-size: 16px;
+  color: #333;
+}
+.bg-login .input, textarea, select {
+  background-color: #FFF;
+  border: 1px solid #CCC;
+  box-shadow: 2px 2px 2px #F0F0F0 inset;
+  font-family: inherit;
+  font-size: 100%;
+  line-height: 18px;
+  padding: 4px;
+  margin: 0;
+  vertical-align: middle;
+  color:#333;
+}
+.bg-login .operation {
+  text-align: center;
+}
+
+
+
+
+
+/* CSS Document */
+
+.t_data{
+  color:#666666;
+  text-align: right;
+  padding-top:30px;
+}
+.t_bluedata{
+  color:#1d91db;
+  font-size:18px;
+  font-weight: bold;
+}
+.loginbc{
+  background-color: #3b67b0;
+}
+
+.loginbg{
+  background-image: url(../img/loginbg.jpg);
+  background-repeat: no-repeat;
+  height:328px;
+}
+
+.admin_login{ width:300px;
+  float:right;
+  margin-right:40px;
+  margin-top:40px;
+  height:240px;
+  background-color:#fff;
+  padding:30px;}
+.b20{ margin-bottom:20px;}
+.t80{ margin-top:80px;}
+.p40{ padding:40px 60px; height:360px;color:#666666;}
+.p60{ padding:60px; color:#666666;height:360px;}
+.yanshi{margin-top:10px; color:#FF0000;}
+.boxright{ border-right: 1px #dcdcdc solid;}
+.boxbottom{ border-bottom: 1px #dcdcdc solid;}
+.t20{ margin-top:40px;}
+.h2text{ font-size:26px; color:#333333; margin-bottom:20px; margin-top:28px;}
+
+.ptext{padding-left:40px; padding-right:40px; text-align:justify;}
+.footcopy{ height:76px; background-color:#f4f4f4;  line-height:76px;}
+
+#error{color:red}

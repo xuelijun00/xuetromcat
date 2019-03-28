@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yks.bigdata.dao.Logistics_pickupMapper" >
+  <resultMap id="BaseResultMap" type="com.yks.bigdata.dto.trackmore.LogisticsPickup" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="order_id" property="orderId" jdbcType="VARCHAR" />
+    <result column="channel_code" property="channelCode" jdbcType="VARCHAR" />
+    <result column="channel_name" property="channelName" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="status" property="status" jdbcType="INTEGER" />
+    <result column="register_status" property="registerStatus" jdbcType="INTEGER" />
+    <result column="register_time" property="registerTime" jdbcType="TIMESTAMP" />
+    <result column="update_time" property="updateTime" jdbcType="TIMESTAMP" />
+    <result column="track_number" property="trackNumber" jdbcType="VARCHAR" />
+    <result column="account" property="account" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, order_id, channel_code, channel_name, create_time, status, register_status, register_time, 
+    update_time,track_number,account
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from logistics_pickup
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+
+  <select id="selectLogisticsPickup" resultMap="BaseResultMap" parameterType="com.yks.bigdata.dto.trackmore.LogisticsPickup" >
+    select
+    <include refid="Base_Column_List" />
+    from logistics_pickup
+    where 1=1
+    <if test="orderId != null and orderId.length > 0">
+      and order_id like CONCAT('%',#{orderId,jdbcType=VARCHAR},'%')
+    </if>
+    <if test="paramBegin != null and paramBegin.length > 0">
+      and create_time >= #{paramBegin,jdbcType=DATE}
+    </if>
+    <if test="paramEnd != null and paramEnd.length > 0">
+      and create_time &lt; #{paramEnd,jdbcType=DATE}
+    </if>
+  </select>
+
+  <select id="selectLogisticsPickupByOrderId" resultMap="BaseResultMap" parameterType="String" >
+    select
+    <include refid="Base_Column_List" />
+    from logistics_pickup
+    where 1=1 and order_id = #{orderId,jdbcType=VARCHAR}
+  </select>
+
+  <select id="existsPickUp" resultMap="BaseResultMap" parameterType="java.util.List">
+    select
+    <include refid="Base_Column_List" />
+    from logistics_pickup
+    where order_id in
+    <foreach collection="list" index="index" item="item" open="(" close=")" separator=",">
+      #{item}
+    </foreach>
+  </select>
+
+  
+  <select id="addBatch" parameterType="java.util.List" >
+    insert into logistics_pickup ( order_id, channel_code,
+    channel_name, create_time, status,
+    register_status, register_time, update_time,track_number,account
+    )
+    values
+    <foreach collection="list" index="index" item="item" open="" close="" separator=",">
+      ( #{item.orderId,jdbcType=VARCHAR}, #{item.channelCode,jdbcType=VARCHAR},
+      #{item.channelName,jdbcType=VARCHAR}, #{item.createTime,jdbcType=TIMESTAMP}, #{item.status,jdbcType=INTEGER},
+      #{item.registerStatus,jdbcType=INTEGER}, #{item.registerTime,jdbcType=TIMESTAMP}, #{item.updateTime,jdbcType=TIMESTAMP},#{item.trackNumber,jdbcType=VARCHAR}
+      ,#{item.account,jdbcType=VARCHAR}
+      )
+    </foreach>
+  </select>
+  
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from logistics_pickup
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.yks.bigdata.dto.trackmore.LogisticsPickup" >
+    insert into logistics_pickup (id, order_id, channel_code, 
+      channel_name, create_time, status, 
+      register_status, register_time, update_time,track_number,account
+      )
+    values (#{id,jdbcType=INTEGER}, #{orderId,jdbcType=VARCHAR}, #{channelCode,jdbcType=VARCHAR}, 
+      #{channelName,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{status,jdbcType=INTEGER}, 
+      #{registerStatus,jdbcType=INTEGER}, #{registerTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP},#{item.account,jdbcType=VARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.yks.bigdata.dto.trackmore.LogisticsPickup" >
+    insert into logistics_pickup
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="orderId != null" >
+        order_id,
+      </if>
+      <if test="channelCode != null" >
+        channel_code,
+      </if>
+      <if test="channelName != null" >
+        channel_name,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="status != null" >
+        status,
+      </if>
+      <if test="registerStatus != null" >
+        register_status,
+      </if>
+      <if test="registerTime != null" >
+        register_time,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+      <if test="track_number != null" >
+        track_number,
+      </if>
+      <if test="account != null" >
+        account,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="orderId != null" >
+        #{orderId,jdbcType=VARCHAR},
+      </if>
+      <if test="channelCode != null" >
+        #{channelCode,jdbcType=VARCHAR},
+      </if>
+      <if test="channelName != null" >
+        #{channelName,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=INTEGER},
+      </if>
+      <if test="registerStatus != null" >
+        #{registerStatus,jdbcType=INTEGER},
+      </if>
+      <if test="registerTime != null" >
+        #{registerTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="trackNumber != null" >
+        #{trackNumber,jdbcType=VARCHAR},
+      </if>
+      <if test="account != null" >
+        #{account,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.yks.bigdata.dto.trackmore.LogisticsPickup" >
+    update logistics_pickup
+    <set >
+      <if test="orderId != null" >
+        order_id = #{orderId,jdbcType=VARCHAR},
+      </if>
+      <if test="channelCode != null" >
+        channel_code = #{channelCode,jdbcType=VARCHAR},
+      </if>
+      <if test="channelName != null" >
+        channel_name = #{channelName,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="status != null" >
+        status = #{status,jdbcType=INTEGER},
+      </if>
+      <if test="registerStatus != null" >
+        register_status = #{registerStatus,jdbcType=INTEGER},
+      </if>
+      <if test="registerTime != null" >
+        register_time = #{registerTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="trackNumber != null" >
+        track_number = #{trackNumber,jdbcType=VARCHAR}
+      </if>
+      <if test="account != null" >
+        account = #{account,jdbcType=VARCHAR}
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.yks.bigdata.dto.trackmore.LogisticsPickup" >
+    update logistics_pickup
+    set order_id = #{orderId,jdbcType=VARCHAR},
+      channel_code = #{channelCode,jdbcType=VARCHAR},
+      channel_name = #{channelName,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      status = #{status,jdbcType=INTEGER},
+      register_status = #{registerStatus,jdbcType=INTEGER},
+      register_time = #{registerTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      track_number = #{trackNumber,jdbcType=VARCHAR},
+      account = #{account,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+
+
+  <update id="updatePickupToAggred" parameterType="com.yks.bigdata.dto.trackmore.LogisticsPickup" >
+    update logistics_pickup
+    set status=1
+    where order_id=#{orderId,jdbcType=VARCHAR}
+  </update>
+
+  <update id="updatePickupToAggredBatch" parameterType="java.util.List" >
+    update logistics_pickup
+    set status=1
+    where order_id in
+    <foreach collection="list" index="index" item="item" open="(" close=")" separator=",">
+      #{item}
+    </foreach>
+  </update>
+
+  <update id="updateStatusRegistered"  >
+    update logistics_pickup
+    set register_status=1 , register_time=#{times,jdbcType=TIMESTAMP}
+    where order_id in
+    <foreach collection="list" index="index" item="item" open="(" close=")" separator=",">
+      #{item}
+    </foreach>
+  </update>
+
+</mapper>

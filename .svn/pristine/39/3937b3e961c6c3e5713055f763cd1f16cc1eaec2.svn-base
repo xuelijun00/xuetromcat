@@ -1,0 +1,1195 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yks.bigdata.dao.Erp_ordersMapper">
+
+    <resultMap id="BaseResultMap" type="com.yks.bigdata.dto.trackmore.ErpOrders">
+        <id column="erp_orders_id" property="erpOrdersId" jdbcType="BIGINT"/>
+        <result column="sku" property="sku" jdbcType="VARCHAR"/>
+        <result column="warehouseid" property="warehouseid" jdbcType="SMALLINT"/>
+        <result column="buyer_city" property="buyerCity" jdbcType="VARCHAR"/>
+        <result column="buyer_state" property="buyerState" jdbcType="VARCHAR"/>
+        <result column="buyer_country" property="buyerCountry" jdbcType="VARCHAR"/>
+        <result column="shipping_method" property="shippingMethod" jdbcType="VARCHAR"/>
+        <result column="sales_account" property="salesAccount" jdbcType="VARCHAR"/>
+        <result column="orders_type" property="ordersType" jdbcType="INTEGER"/>
+        <result column="orders_status" property="ordersStatus" jdbcType="INTEGER"/>
+        <result column="orders_export_time" property="ordersExportTime" jdbcType="TIMESTAMP"/>
+        <result column="fee" property="fee" jdbcType="REAL"/>
+        <result column="heavi" property="heavi" jdbcType="REAL"/>
+        <result column="size" property="size" jdbcType="REAL"/>
+        <result column="orders_out_time" property="ordersOutTime" jdbcType="TIMESTAMP"/>
+        <result column="orders_mail_code" property="ordersMailCode" jdbcType="VARCHAR"/>
+        <result column="orders_mail_time" property="ordersMailTime" jdbcType="TIMESTAMP"/>
+        <result column="erp_post_office" property="erpPostOffice" jdbcType="INTEGER"/>
+        <result column="orders_print_time" property="ordersPrintTime" jdbcType="TIMESTAMP"/>
+        <result column="ebay_counycode" property="ebayCounycode" jdbcType="VARCHAR"/>
+        <result column="freightcode" property="freightcode" jdbcType="CHAR"/>
+        <result column="yksid" property="yksid" jdbcType="VARCHAR"/>
+        <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+        <result column="track_status" property="trackStatus" jdbcType="INTEGER"/>
+        <result column="channel_name" property="channelName" jdbcType="VARCHAR"/>
+        <result column="platform" property="platform" jdbcType="VARCHAR"/>
+
+        <result column="internet_date" property="internetDate" jdbcType="TIMESTAMP"/>
+        <result column="bale_date" property="baleDate" jdbcType="TIMESTAMP"/>
+        <result column="traffic_date" property="trafficDate" jdbcType="TIMESTAMP"/>
+        <result column="landing_date" property="landingDate" jdbcType="TIMESTAMP"/>
+        <result column="delivered_date" property="deliveredDate" jdbcType="TIMESTAMP"/>
+
+        <result column="remark" property="remark" jdbcType="VARCHAR"/>
+        <result column="country" property="country" jdbcType="VARCHAR"/>
+        <result column="exception_status" property="exceptionStatus" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <resultMap id="ReportResult" type="com.yks.bigdata.dto.trackmore.LogisticReport">
+        <result column="platform" property="platform" jdbcType="VARCHAR"/>
+        <result column="buyer_country" property="buyerCountry" jdbcType="VARCHAR"/>
+        <result column="channel_name" property="channelName" jdbcType="VARCHAR"/>
+        <result column="orders_out_time" property="orderOutTime" jdbcType="VARCHAR"/>
+
+        <result column="paymentcount" property="paymentcount" jdbcType="INTEGER"/>
+        <result column="shipcount" property="shipcount" jdbcType="INTEGER"/>
+        <result column="orderexecution_percent" property="orderexecutionPercent" jdbcType="REAL"/>
+
+        <result column="internetcount" property="internetcount" jdbcType="INTEGER"/>
+        <result column="internet_percent" property="internetPercent" jdbcType="INTEGER"/>
+        <result column="internet_date" property="internetDate" jdbcType="REAL"/>
+
+        <result column="balecount" property="balecount" jdbcType="INTEGER"/>
+        <result column="bale_percent" property="balePercent" jdbcType="INTEGER"/>
+        <result column="bale_date" property="baleDate" jdbcType="REAL"/>
+
+        <result column="trafficcount" property="trafficcount" jdbcType="INTEGER"/>
+        <result column="traffic_percent" property="trafficPercent" jdbcType="INTEGER"/>
+        <result column="traffic_date" property="trafficDate" jdbcType="REAL"/>
+
+        <result column="landingcount" property="landingcount" jdbcType="INTEGER"/>
+        <result column="landing_percent" property="landingPercent" jdbcType="INTEGER"/>
+        <result column="landing_date" property="landingDate" jdbcType="REAL"/>
+
+        <result column="deliveredcount" property="deliveredcount" jdbcType="INTEGER"/>
+        <result column="delivered_percent" property="deliveredPercent" jdbcType="INTEGER"/>
+        <result column="delivered_date" property="deliveredDate" jdbcType="REAL"/>
+
+        <result column="heavi" property="heavi" jdbcType="INTEGER"/>
+        <result column="avgheavi" property="avgheavi" jdbcType="REAL"/>
+        <result column="fee" property="fee" jdbcType="INTEGER"/>
+        <result column="avgprice" property="avgprice" jdbcType="REAL"/>
+    </resultMap>
+
+
+    <sql id="Base_Column_List">
+        `erp_orders_id`, `sku`, `warehouseid`, `buyer_city`, 
+        `buyer_state`, `buyer_country`, `shipping_method`,
+         `sales_account`, `orders_type`, `orders_status`, 
+         `orders_export_time`, `fee`, `heavi`, `size`, `orders_out_time`,
+          `orders_mail_code`, `orders_mail_time`, `erp_post_office`, `orders_print_time`, 
+          `ebay_counycode`, `freightcode`, `yksid`, `create_time`, `channel_name`,
+           `track_status`, `platform`, `internet_date`, `bale_date`, 
+        `traffic_date`, `landing_date`, `delivered_date`, `remark`, `country` , `exception_status`
+     </sql>
+
+    <select id="selectAvailablePickUpOrders" resultMap="BaseResultMap">
+       select erp_orders_id, sku, warehouseid, buyer_city, buyer_state, buyer_country, shipping_method,
+        sales_account, orders_type, orders_status, orders_export_time, fee, heavi, size,
+        orders_out_time, orders_mail_code, orders_mail_time, erp_post_office, orders_print_time,
+        ebay_counycode , yksid, a.create_time, track_status,a.channel_name
+        from erp_orders a
+        inner join logistics_pickup b
+        on a.erp_orders_id = b.order_id
+        where (b.status = 0 or b.`status` = 610)
+        and not exists (select 1 from request_task t where a.erp_orders_id = t.erp_orders_id)
+        /*union
+        select erp_orders_id, sku, warehouseid, buyer_city, buyer_state, buyer_country, shipping_method,
+        sales_account, orders_type, orders_status, orders_export_time, fee, heavi, size,
+        orders_out_time, orders_mail_code, orders_mail_time, erp_post_office, orders_print_time,
+        ebay_counycode, yksid, create_time, track_status,channel_name
+        from erp_orders
+        where track_status = 602 or track_status = 604
+        limit 10000*/
+    </select>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long">
+        select
+        <include refid="Base_Column_List"/>
+        from erp_orders
+        where erp_orders_id = #{erpOrdersId,jdbcType=BIGINT}
+    </select>
+
+    <!--查询国家-->
+    <select id="selectbuyerCountry" resultType="String" >
+        select DISTINCT country
+        from erp_orders
+    </select>
+    
+     <select id="selectplatform" resultType="String" >
+        select DISTINCT platform
+        from erp_orders
+    </select>
+    
+     <select id="selectchannelName" resultType="String" >
+        select DISTINCT channel_name
+        from erp_orders a
+        INNER JOIN logistics_channel b on a.channel_name = b.yks_channel_name and b.`status` = 1
+    </select>
+
+    <select id="selectErpOrders" resultMap="BaseResultMap" parameterType="com.yks.bigdata.dto.trackmore.ErpOrders">
+        select
+        <include refid="Base_Column_List"/>
+        from erp_orders
+        where 1=1
+        <if test="erpOrdersId != null">
+            and erp_orders_id = #{erpOrdersId,jdbcType=BIGINT}
+        </if>
+        <if test="ordersMailCode != null and ordersMailCode.length > 0">
+            and orders_mail_code = #{ordersMailCode,jdbcType=VARCHAR}
+        </if>
+
+        <if test="platform != null and platform.length > 0 ">
+            and platform in(${platform})
+        </if>
+        <if test="buyerCountry != null and buyerCountry.length > 0 ">
+            and buyer_country in(${buyerCountry})
+        </if>
+        <if test="channelName != null and channelName.length > 0 ">
+            and channel_name in(${channelName})
+        </if>
+        <if test="trackStatus != null ">
+            and track_status = #{trackStatus,jdbcType=VARCHAR}
+        </if>
+
+        <choose>
+            <when test="startTime != null and endTime != null and startTime.length > 0 and endTime.length > 0">
+                and orders_out_time between #{startTime,jdbcType=VARCHAR} and #{endTime,jdbcType=VARCHAR}
+            </when>
+            <when test="startTime != null and startTime.length > 0">
+                and orders_out_time >= #{startTime,jdbcType=VARCHAR}
+            </when>
+            <when test="endTime != null and endTime.length > 0">
+                <![CDATA[and orders_out_time <= #{endTime,jdbcType=VARCHAR}]]>
+            </when>
+        </choose>
+    </select>
+
+    <select id="selectErpOrdersDetails" resultMap="BaseResultMap" parameterType="com.yks.bigdata.dto.trackmore.ErpOrders">
+        select
+        <include refid="Base_Column_List"/>
+        from erp_orders
+        where 1=1 <!-- and track_status in (0,1,2,3,4,5,803,608) -->
+        <!--<if test="erpOrdersId != null">
+            and erp_orders_id = #{erpOrdersId,jdbcType=BIGINT}
+        </if>
+        <if test="ordersMailCode != null and ordersMailCode.length > 0">
+            and orders_mail_code = #{ordersMailCode,jdbcType=VARCHAR}
+        </if>-->
+        <if test="erpOrdersId1 != null">
+            and erp_orders_id in (${erpOrdersId1})
+        </if>
+        <if test="ordersMailCode != null and ordersMailCode.length > 0">
+            and orders_mail_code in (${ordersMailCode})
+        </if>
+
+        <if test="platform != null and platform.length > 0 ">
+            and platform = #{platform,jdbcType=VARCHAR}
+        </if>
+        <if test="buyerCountry != null and buyerCountry.length > 0 ">
+            and country in(${buyerCountry})
+        </if>
+        <if test="channelName != null and channelName.length > 0 ">
+            and channel_name in(${channelName})
+        </if>
+        <if test="trackStatus != null ">
+            and track_status = #{trackStatus,jdbcType=VARCHAR}
+        </if>
+
+        <choose>
+            <when test="startTime != null and endTime != null and startTime.length > 0 and endTime.length > 0">
+                and orders_out_time between #{startTime,jdbcType=VARCHAR} and #{endTime,jdbcType=VARCHAR}
+            </when>
+            <when test="startTime != null and startTime.length > 0">
+                and orders_out_time >= #{startTime,jdbcType=VARCHAR}
+            </when>
+            <when test="endTime != null and endTime.length > 0">
+                <![CDATA[and orders_out_time <= #{endTime,jdbcType=VARCHAR}]]>
+            </when>
+        </choose>
+    </select>
+
+    <select id="selectExceptionErpOrders" resultMap="BaseResultMap" parameterType="com.yks.bigdata.dto.trackmore.ErpOrders" >
+        select
+        <include refid="Base_Column_List" />
+        from erp_orders
+        where 1=1 and exception_status in (16,17,18,19,20,10,11,12,13,14,15,21)
+        <if test="erpOrdersId != null">
+            and erp_orders_id = #{erpOrdersId,jdbcType=BIGINT}
+        </if>
+        <if test="ordersMailCode != null and ordersMailCode.length > 0">
+            and orders_mail_code = #{ordersMailCode,jdbcType=VARCHAR}
+        </if>
+
+        <if test="platform != null and platform.length > 0 ">
+            and platform in(${platform})
+        </if>
+        <if test="buyerCountry != null and buyerCountry.length > 0 ">
+            and country in(${buyerCountry})
+        </if>
+        <if test="channelName != null and channelName.length > 0 ">
+            and channel_name in(${channelName})
+        </if>
+
+        <choose>
+            <when test="startTime != null and endTime != null and startTime.length > 0 and endTime.length > 0">
+                and orders_out_time between #{startTime,jdbcType=VARCHAR} and #{endTime,jdbcType=VARCHAR}
+            </when>
+            <when test="startTime != null and startTime.length > 0">
+                and orders_out_time >= #{startTime,jdbcType=VARCHAR}
+            </when>
+            <when test="endTime != null and endTime.length > 0">
+                <![CDATA[and orders_out_time <= #{endTime,jdbcType=VARCHAR}]]>
+            </when>
+        </choose>
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        delete from erp_orders
+        where erp_orders_id = #{erpOrdersId,jdbcType=BIGINT}
+    </delete>
+
+    <insert id="addBatch" parameterType="java.util.List" useGeneratedKeys="true">
+        insert into erp_orders (erp_orders_id, sku, warehouseid,
+        buyer_city, buyer_state, buyer_country,
+        shipping_method, sales_account, orders_type,
+        orders_status, orders_export_time, fee,
+        heavi, size, orders_out_time,
+        orders_mail_code, orders_mail_time, erp_post_office,
+        orders_print_time, ebay_counycode, freightcode,
+        yksid, create_time, track_status,channel_name,platform,country
+        )
+        values
+        <foreach collection="list" index="index" item="item" open="" close="" separator=",">
+            (#{item.erpOrdersId,jdbcType=BIGINT}, #{item.sku,jdbcType=VARCHAR}, #{item.warehouseid,jdbcType=SMALLINT},
+            #{item.buyerCity,jdbcType=VARCHAR}, #{item.buyerState,jdbcType=VARCHAR}, #{item.buyerCountry,jdbcType=VARCHAR},
+            #{item.shippingMethod,jdbcType=VARCHAR}, #{item.salesAccount,jdbcType=VARCHAR}, #{item.ordersType,jdbcType=INTEGER},
+            #{item.ordersStatus,jdbcType=INTEGER}, #{item.ordersExportTime,jdbcType=TIMESTAMP}, #{item.fee,jdbcType=REAL},
+            #{item.heavi,jdbcType=REAL}, #{item.size,jdbcType=REAL}, #{item.ordersOutTime,jdbcType=TIMESTAMP},
+            #{item.ordersMailCode,jdbcType=VARCHAR}, #{item.ordersMailTime,jdbcType=TIMESTAMP}, #{item.erpPostOffice,jdbcType=INTEGER},
+            #{item.ordersPrintTime,jdbcType=TIMESTAMP}, #{item.ebayCounycode,jdbcType=VARCHAR}, #{item.freightcode,jdbcType=CHAR},
+            #{item.yksid,jdbcType=VARCHAR}, #{item.createTime,jdbcType=TIMESTAMP}, #{item.trackStatus,jdbcType=INTEGER}
+            , #{item.channelName,jdbcType=VARCHAR}
+            , #{item.platform,jdbcType=VARCHAR}, #{item.country,jdbcType=VARCHAR}
+            )
+        </foreach>
+    </insert>
+
+    <select id="existsOrders" resultMap="BaseResultMap" parameterType="java.util.List">
+        select
+        <include refid="Base_Column_List"/>
+        from erp_orders
+        where erp_orders_id in
+        <foreach collection="list" index="index" item="item" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+    </select>
+
+    <select id="existsOrder" resultMap="BaseResultMap" parameterType="java.lang.Long">
+        select
+        <include refid="Base_Column_List"/>
+        from erp_orders
+        where erp_orders_id = #{erpOrdersId,jdbcType=BIGINT}
+    </select>
+    
+    <insert id="insert" parameterType="com.yks.bigdata.dto.trackmore.ErpOrders">
+        insert into erp_orders (erp_orders_id, sku, warehouseid,
+        buyer_city, buyer_state, buyer_country,
+        shipping_method, sales_account, orders_type,
+        orders_status, orders_export_time, fee,
+        heavi, size, orders_out_time,
+        orders_mail_code, orders_mail_time, erp_post_office,
+        orders_print_time, ebay_counycode, freightcode,
+        yksid, create_time, track_status
+        )
+        values (#{erpOrdersId,jdbcType=BIGINT}, #{sku,jdbcType=VARCHAR}, #{warehouseid,jdbcType=SMALLINT},
+        #{buyerCity,jdbcType=VARCHAR}, #{buyerState,jdbcType=VARCHAR}, #{buyerCountry,jdbcType=VARCHAR},
+        #{shippingMethod,jdbcType=VARCHAR}, #{salesAccount,jdbcType=VARCHAR}, #{ordersType,jdbcType=INTEGER},
+        #{ordersStatus,jdbcType=INTEGER}, #{ordersExportTime,jdbcType=TIMESTAMP}, #{fee,jdbcType=REAL},
+        #{heavi,jdbcType=REAL}, #{size,jdbcType=REAL}, #{ordersOutTime,jdbcType=TIMESTAMP},
+        #{ordersMailCode,jdbcType=VARCHAR}, #{ordersMailTime,jdbcType=TIMESTAMP}, #{erpPostOffice,jdbcType=INTEGER},
+        #{ordersPrintTime,jdbcType=TIMESTAMP}, #{ebayCounycode,jdbcType=VARCHAR}, #{freightcode,jdbcType=CHAR},
+        #{yksid,jdbcType=VARCHAR}, #{createTime,jdbcType=TIMESTAMP}, #{trackStatus,jdbcType=INTEGER}
+        )
+    </insert>
+    <insert id="insertSelective" parameterType="com.yks.bigdata.dto.trackmore.ErpOrders">
+        insert into erp_orders
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="erpOrdersId != null">
+                erp_orders_id,
+            </if>
+            <if test="sku != null">
+                sku,
+            </if>
+            <if test="warehouseid != null">
+                warehouseid,
+            </if>
+            <if test="buyerCity != null">
+                buyer_city,
+            </if>
+            <if test="buyerState != null">
+                buyer_state,
+            </if>
+            <if test="buyerCountry != null">
+                buyer_country,
+            </if>
+            <if test="shippingMethod != null">
+                shipping_method,
+            </if>
+            <if test="salesAccount != null">
+                sales_account,
+            </if>
+            <if test="ordersType != null">
+                orders_type,
+            </if>
+            <if test="ordersStatus != null">
+                orders_status,
+            </if>
+            <if test="ordersExportTime != null">
+                orders_export_time,
+            </if>
+            <if test="fee != null">
+                fee,
+            </if>
+            <if test="heavi != null">
+                heavi,
+            </if>
+            <if test="size != null">
+                size,
+            </if>
+            <if test="ordersOutTime != null">
+                orders_out_time,
+            </if>
+            <if test="ordersMailCode != null">
+                orders_mail_code,
+            </if>
+            <if test="ordersMailTime != null">
+                orders_mail_time,
+            </if>
+            <if test="erpPostOffice != null">
+                erp_post_office,
+            </if>
+            <if test="ordersPrintTime != null">
+                orders_print_time,
+            </if>
+            <if test="ebayCounycode != null">
+                ebay_counycode,
+            </if>
+            <if test="freightcode != null">
+                freightcode,
+            </if>
+            <if test="yksid != null">
+                yksid,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+            <if test="trackStatus != null">
+                track_status,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="erpOrdersId != null">
+                #{erpOrdersId,jdbcType=BIGINT},
+            </if>
+            <if test="sku != null">
+                #{sku,jdbcType=VARCHAR},
+            </if>
+            <if test="warehouseid != null">
+                #{warehouseid,jdbcType=SMALLINT},
+            </if>
+            <if test="buyerCity != null">
+                #{buyerCity,jdbcType=VARCHAR},
+            </if>
+            <if test="buyerState != null">
+                #{buyerState,jdbcType=VARCHAR},
+            </if>
+            <if test="buyerCountry != null">
+                #{buyerCountry,jdbcType=VARCHAR},
+            </if>
+            <if test="shippingMethod != null">
+                #{shippingMethod,jdbcType=VARCHAR},
+            </if>
+            <if test="salesAccount != null">
+                #{salesAccount,jdbcType=VARCHAR},
+            </if>
+            <if test="ordersType != null">
+                #{ordersType,jdbcType=INTEGER},
+            </if>
+            <if test="ordersStatus != null">
+                #{ordersStatus,jdbcType=INTEGER},
+            </if>
+            <if test="ordersExportTime != null">
+                #{ordersExportTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="fee != null">
+                #{fee,jdbcType=REAL},
+            </if>
+            <if test="heavi != null">
+                #{heavi,jdbcType=REAL},
+            </if>
+            <if test="size != null">
+                #{size,jdbcType=REAL},
+            </if>
+            <if test="ordersOutTime != null">
+                #{ordersOutTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="ordersMailCode != null">
+                #{ordersMailCode,jdbcType=VARCHAR},
+            </if>
+            <if test="ordersMailTime != null">
+                #{ordersMailTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="erpPostOffice != null">
+                #{erpPostOffice,jdbcType=INTEGER},
+            </if>
+            <if test="ordersPrintTime != null">
+                #{ordersPrintTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="ebayCounycode != null">
+                #{ebayCounycode,jdbcType=VARCHAR},
+            </if>
+            <if test="freightcode != null">
+                #{freightcode,jdbcType=CHAR},
+            </if>
+            <if test="yksid != null">
+                #{yksid,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null">
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="trackStatus != null">
+                #{trackStatus,jdbcType=INTEGER},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective" parameterType="com.yks.bigdata.dto.trackmore.ErpOrders">
+        update erp_orders
+        <set>
+            <if test="sku != null">
+                sku = #{sku,jdbcType=VARCHAR},
+            </if>
+            <if test="warehouseid != null">
+                warehouseid = #{warehouseid,jdbcType=SMALLINT},
+            </if>
+            <if test="buyerCity != null">
+                buyer_city = #{buyerCity,jdbcType=VARCHAR},
+            </if>
+            <if test="buyerState != null">
+                buyer_state = #{buyerState,jdbcType=VARCHAR},
+            </if>
+            <if test="buyerCountry != null">
+                buyer_country = #{buyerCountry,jdbcType=VARCHAR},
+            </if>
+            <if test="shippingMethod != null">
+                shipping_method = #{shippingMethod,jdbcType=VARCHAR},
+            </if>
+            <if test="salesAccount != null">
+                sales_account = #{salesAccount,jdbcType=VARCHAR},
+            </if>
+            <if test="ordersType != null">
+                orders_type = #{ordersType,jdbcType=INTEGER},
+            </if>
+            <if test="ordersStatus != null">
+                orders_status = #{ordersStatus,jdbcType=INTEGER},
+            </if>
+            <if test="ordersExportTime != null">
+                orders_export_time = #{ordersExportTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="fee != null">
+                fee = #{fee,jdbcType=REAL},
+            </if>
+            <if test="heavi != null">
+                heavi = #{heavi,jdbcType=REAL},
+            </if>
+            <if test="size != null">
+                size = #{size,jdbcType=REAL},
+            </if>
+            <if test="ordersOutTime != null">
+                orders_out_time = #{ordersOutTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="ordersMailCode != null">
+                orders_mail_code = #{ordersMailCode,jdbcType=VARCHAR},
+            </if>
+            <if test="ordersMailTime != null">
+                orders_mail_time = #{ordersMailTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="erpPostOffice != null">
+                erp_post_office = #{erpPostOffice,jdbcType=INTEGER},
+            </if>
+            <if test="ordersPrintTime != null">
+                orders_print_time = #{ordersPrintTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="ebayCounycode != null">
+                ebay_counycode = #{ebayCounycode,jdbcType=VARCHAR},
+            </if>
+            <if test="freightcode != null">
+                freightcode = #{freightcode,jdbcType=CHAR},
+            </if>
+            <if test="yksid != null">
+                yksid = #{yksid,jdbcType=VARCHAR},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="trackStatus != null">
+                track_status = #{trackStatus,jdbcType=INTEGER},
+            </if>
+            <if test="internetDate != null">
+                internet_date = #{internetDate,jdbcType=INTEGER},
+            </if>
+            <if test="baleDate != null">
+                bale_date = #{baleDate,jdbcType=INTEGER},
+            </if>
+            <if test="trafficDate != null">
+                traffic_date = #{trafficDate,jdbcType=INTEGER},
+            </if>
+            <if test="landingDate != null">
+                landing_date = #{landingDate,jdbcType=INTEGER},
+            </if>
+            <if test="deliveredDate != null">
+                delivered_date = #{deliveredDate,jdbcType=INTEGER},
+            </if>
+            <if test="exceptionStatus != null">
+                exception_status = #{exceptionStatus,jdbcType=INTEGER},
+            </if>
+        </set>
+        where erp_orders_id = #{erpOrdersId,jdbcType=BIGINT}
+    </update>
+    <update id="updateExceptionStatus" parameterType="com.yks.bigdata.dto.trackmore.ErpOrders">
+        UPDATE erp_orders set exception_status = #{exceptionStatus} where orders_mail_code = #{ordersMailCode,jdbcType=VARCHAR}
+    </update>
+    <update id="updateExceptionMessage" parameterType="com.yks.bigdata.dto.trackmore.ErpOrders">
+        UPDATE erp_orders set remark = #{remark} where orders_mail_code = #{ordersMailCode,jdbcType=VARCHAR}
+    </update>
+    <update id="updateByPrimaryKey" parameterType="com.yks.bigdata.dto.trackmore.ErpOrders">
+        update erp_orders
+        set sku = #{sku,jdbcType=VARCHAR},
+        warehouseid = #{warehouseid,jdbcType=SMALLINT},
+        buyer_city = #{buyerCity,jdbcType=VARCHAR},
+        buyer_state = #{buyerState,jdbcType=VARCHAR},
+        buyer_country = #{buyerCountry,jdbcType=VARCHAR},
+        shipping_method = #{shippingMethod,jdbcType=VARCHAR},
+        sales_account = #{salesAccount,jdbcType=VARCHAR},
+        orders_type = #{ordersType,jdbcType=INTEGER},
+        orders_status = #{ordersStatus,jdbcType=INTEGER},
+        orders_export_time = #{ordersExportTime,jdbcType=TIMESTAMP},
+        fee = #{fee,jdbcType=REAL},
+        heavi = #{heavi,jdbcType=REAL},
+        size = #{size,jdbcType=REAL},
+        orders_out_time = #{ordersOutTime,jdbcType=TIMESTAMP},
+        orders_mail_code = #{ordersMailCode,jdbcType=VARCHAR},
+        orders_mail_time = #{ordersMailTime,jdbcType=TIMESTAMP},
+        erp_post_office = #{erpPostOffice,jdbcType=INTEGER},
+        orders_print_time = #{ordersPrintTime,jdbcType=TIMESTAMP},
+        ebay_counycode = #{ebayCounycode,jdbcType=VARCHAR},
+        freightcode = #{freightcode,jdbcType=CHAR},
+        yksid = #{yksid,jdbcType=VARCHAR},
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+        track_status = #{trackStatus,jdbcType=INTEGER}
+        where erp_orders_id = #{erpOrdersId,jdbcType=BIGINT}
+    </update>
+
+
+    <!-- Cache 配置 -->
+    <cache
+            eviction="FIFO"
+            flushInterval="60000"
+            size="512"
+            readOnly="true" />
+
+    <select id="selectReportData" resultMap="ReportResult" parameterType="com.yks.bigdata.dto.trackmore.LogisticReport" useCache="true">
+        select a.platform,a.country as buyer_country,a.channel_name,a.paymentcount,b.shipcount,ROUND(b.shipcount/paymentcount,3) as orderexecution_percent
+        ,ifnull(c.internetcount,0) as internetcount,ifnull(c.internetcount/b.shipcount,0) as internet_percent,ifnull(c.internet_date/c.internetcount,0) as internet_date
+        ,ifnull(d.balecount,0)as balecount,ifnull(d.balecount/b.shipcount,0) as bale_percent,ifnull(d.bale_date/d.balecount,0) as bale_date
+        ,ifnull(e.trafficcount,0) as trafficcount,ifnull(e.trafficcount/b.shipcount,0) as traffic_percent,ifnull(e.traffic_date/e.trafficcount,0) as traffic_date
+        ,ifnull(f.landingcount,0) as landingcount,ifnull(f.landingcount/b.shipcount,0) as landing_percent,ifnull(f.landing_date/f.landingcount,0) as landing_date
+        ,ifnull(g.deliveredcount,0)as deliveredcount,ifnull(g.deliveredcount/b.shipcount,0) as delivered_percent,ifnull(g.delivered_date/g.deliveredcount,0) as delivered_date
+        ,ifnull(b.heavi,0)as heavi,ROUND(ifnull(b.heavi/b.shipcount,0),3) as avgheavi
+        ,ROUND(ifnull(b.fee,0),3)as fee,ROUND(ifnull(b.fee/b.shipcount,0),3) as avgprice
+        from(
+                /*已付款订单，默认是全部订单*/
+                select platform,country,channel_name,count(1) as paymentcount
+                from erp_orders a
+                INNER JOIN logistics_channel b on a.channel_name = b.yks_channel_name and b.`status` = 1
+                where 1=1
+                <if test="platform != null and platform.length() > 0">
+                    and platform in (${platform})
+                </if>
+                <if test="buyerCountry != null and buyerCountry.length() > 0">
+                    and country in (${buyerCountry})
+                </if>
+                <if test="channelName != null and channelName.length() > 0">
+                    and channel_name in (${channelName})
+                </if>
+                <choose>
+                    <when test="startTime != null and endTime != null and startTime.length > 0 and endTime.length > 0">
+                        and orders_out_time between #{startTime,jdbcType=VARCHAR} and #{endTime,jdbcType=VARCHAR}
+                    </when>
+                    <when test="startTime != null and startTime.length > 0">
+                        and orders_out_time >= #{startTime,jdbcType=VARCHAR}
+                    </when>
+                    <when test="endTime != null and endTime.length > 0">
+                        <![CDATA[and orders_out_time <= #{endTime,jdbcType=VARCHAR}]]>
+                    </when>
+                </choose>
+                group by platform,country,channel_name
+            ) a
+            INNER JOIN (
+                /*已发货订单，orders_status = 5*/
+                select platform,country,channel_name,count(1) as shipcount,sum(IFNULL(heavi,0)) as heavi,sum(IFNULL(fee,0)) as fee
+                from erp_orders
+                where orders_status = 5
+                <if test="platform != null and platform.length() > 0">
+                    and platform in (${platform})
+                </if>
+                <if test="buyerCountry != null and buyerCountry.length() > 0">
+                    and country in (${buyerCountry})
+                </if>
+                <if test="channelName != null and channelName.length() > 0">
+                    and channel_name in (${channelName})
+                </if>
+                <choose>
+                    <when test="startTime != null and endTime != null and startTime.length > 0 and endTime.length > 0">
+                        and orders_out_time between #{startTime,jdbcType=VARCHAR} and #{endTime,jdbcType=VARCHAR}
+                    </when>
+                    <when test="startTime != null and startTime.length > 0">
+                        and orders_out_time >= #{startTime,jdbcType=VARCHAR}
+                    </when>
+                    <when test="endTime != null and endTime.length > 0">
+                        <![CDATA[and orders_out_time <= #{endTime,jdbcType=VARCHAR}]]>
+                    </when>
+                </choose>
+                group by platform,country,channel_name
+            )b on a.platform = b.platform and a.country = b.country and a.channel_name = b.channel_name
+            LEFT JOIN (
+                /*已上网订单，track_status = 1-5 都是上网的*/
+                select platform,country,channel_name,count(1) as internetcount
+                  ,sum(case when internet_date is null then 0 else (TIMESTAMPDIFF(MINUTE,orders_out_time,internet_date)/60/24) end) internet_date
+                from erp_orders
+                where (track_status = 1 or track_status = 2 or track_status = 3 or track_status = 4 or track_status = 5)
+                <if test="platform != null and platform.length() > 0">
+                    and platform in (${platform})
+                </if>
+                <if test="buyerCountry != null and buyerCountry.length() > 0">
+                    and country in (${buyerCountry})
+                </if>
+                <if test="channelName != null and channelName.length() > 0">
+                    and channel_name in (${channelName})
+                </if>
+                <choose>
+                    <when test="startTime != null and endTime != null and startTime.length > 0 and endTime.length > 0">
+                        and orders_out_time between #{startTime,jdbcType=VARCHAR} and #{endTime,jdbcType=VARCHAR}
+                    </when>
+                    <when test="startTime != null and startTime.length > 0">
+                        and orders_out_time >= #{startTime,jdbcType=VARCHAR}
+                    </when>
+                    <when test="endTime != null and endTime.length > 0">
+                        <![CDATA[and orders_out_time <= #{endTime,jdbcType=VARCHAR}]]>
+                    </when>
+                </choose>
+                group by platform,country,channel_name
+            )c on a.platform = c.platform and a.country = c.country and a.channel_name = c.channel_name
+            LEFT JOIN (
+                /*已封发订单，track_status = 2-5 都是封发的*/
+                select platform,country,channel_name,count(1) as balecount
+                ,sum(case when bale_date is null then (TIMESTAMPDIFF(MINUTE,orders_out_time,DATE_ADD(internet_date,INTERVAL 1 DAY))/60/24) else (TIMESTAMPDIFF(MINUTE,orders_out_time,bale_date)/60/24) end) bale_date
+                from erp_orders
+                where (track_status = 2 or track_status = 3 or track_status = 4 or track_status = 5)
+                <if test="platform != null and platform.length() > 0">
+                    and platform in (${platform})
+                </if>
+                <if test="buyerCountry != null and buyerCountry.length() > 0">
+                    and country in (${buyerCountry})
+                </if>
+                <if test="channelName != null and channelName.length() > 0">
+                    and channel_name in (${channelName})
+                </if>
+                <choose>
+                    <when test="startTime != null and endTime != null and startTime.length > 0 and endTime.length > 0">
+                        and orders_out_time between #{startTime,jdbcType=VARCHAR} and #{endTime,jdbcType=VARCHAR}
+                    </when>
+                    <when test="startTime != null and startTime.length > 0">
+                        and orders_out_time >= #{startTime,jdbcType=VARCHAR}
+                    </when>
+                    <when test="endTime != null and endTime.length > 0">
+                        <![CDATA[and orders_out_time <= #{endTime,jdbcType=VARCHAR}]]>
+                    </when>
+                </choose>
+                group by platform,country,channel_name
+            )d on a.platform = d.platform and a.country = d.country and a.channel_name = d.channel_name
+            LEFT JOIN (
+                /*已交航订单，track_status = 3-5 都是交航的*/
+                select platform,country,channel_name,count(1) as trafficcount
+                ,sum(case when traffic_date is null then (TIMESTAMPDIFF(MINUTE,orders_out_time,DATE_ADD(bale_date,INTERVAL 1 DAY))/60/24) else (TIMESTAMPDIFF(MINUTE,orders_out_time,traffic_date)/60/24) end) traffic_date
+                from erp_orders
+                where (track_status = 3 or track_status = 4 or track_status = 5)
+                <if test="platform != null and platform.length() > 0">
+                    and platform in (${platform})
+                </if>
+                <if test="buyerCountry != null and buyerCountry.length() > 0">
+                    and country in (${buyerCountry})
+                </if>
+                <if test="channelName != null and channelName.length() > 0">
+                    and channel_name in (${channelName})
+                </if>
+                <choose>
+                    <when test="startTime != null and endTime != null and startTime.length > 0 and endTime.length > 0">
+                        and orders_out_time between #{startTime,jdbcType=VARCHAR} and #{endTime,jdbcType=VARCHAR}
+                    </when>
+                    <when test="startTime != null and startTime.length > 0">
+                        and orders_out_time >= #{startTime,jdbcType=VARCHAR}
+                    </when>
+                    <when test="endTime != null and endTime.length > 0">
+                        <![CDATA[and orders_out_time <= #{endTime,jdbcType=VARCHAR}]]>
+                    </when>
+                </choose>
+                group by platform,country,channel_name
+            )e on a.platform = e.platform and a.country = e.country and a.channel_name = e.channel_name
+            LEFT JOIN (
+                /*已落地订单，track_status = 4-5 都是落地的*/
+                select platform,country,channel_name,count(1) as landingcount
+                 ,sum(case when landing_date is null then (TIMESTAMPDIFF(MINUTE,orders_out_time,DATE_ADD(traffic_date,INTERVAL 1 DAY))/60/24) else (TIMESTAMPDIFF(MINUTE,orders_out_time,landing_date)/60/24) end) landing_date
+                from erp_orders
+                where (track_status = 4 or track_status = 5)
+                <if test="platform != null and platform.length() > 0">
+                    and platform in (${platform})
+                </if>
+                <if test="buyerCountry != null and buyerCountry.length() > 0">
+                    and country in (${buyerCountry})
+                </if>
+                <if test="channelName != null and channelName.length() > 0">
+                    and channel_name in (${channelName})
+                </if>
+                <choose>
+                    <when test="startTime != null and endTime != null and startTime.length > 0 and endTime.length > 0">
+                        and orders_out_time between #{startTime,jdbcType=VARCHAR} and #{endTime,jdbcType=VARCHAR}
+                    </when>
+                    <when test="startTime != null and startTime.length > 0">
+                        and orders_out_time >= #{startTime,jdbcType=VARCHAR}
+                    </when>
+                    <when test="endTime != null and endTime.length > 0">
+                        <![CDATA[and orders_out_time <= #{endTime,jdbcType=VARCHAR}]]>
+                    </when>
+                </choose>
+                group by platform,country,channel_name
+            )f on a.platform = f.platform and a.country = f.country and a.channel_name = f.channel_name
+            LEFT JOIN (
+                /*已妥投订单，track_status = 5 都是妥投的*/
+                select platform,country,channel_name,count(1) as deliveredcount
+                  ,sum(case when delivered_date is null then (TIMESTAMPDIFF(MINUTE,orders_out_time,DATE_ADD(landing_date,INTERVAL 1 DAY))/60/24) else (TIMESTAMPDIFF(MINUTE,orders_out_time,delivered_date)/60/24) end) delivered_date
+                from erp_orders
+                where track_status = 5
+                <if test="platform != null and platform.length() > 0">
+                    and platform in (${platform})
+                </if>
+                <if test="buyerCountry != null and buyerCountry.length() > 0">
+                    and country in (${buyerCountry})
+                </if>
+                <if test="channelName != null and channelName.length() > 0">
+                    and channel_name in (${channelName})
+                </if>
+                <choose>
+                    <when test="startTime != null and endTime != null and startTime.length > 0 and endTime.length > 0">
+                        and orders_out_time between #{startTime,jdbcType=VARCHAR} and #{endTime,jdbcType=VARCHAR}
+                    </when>
+                    <when test="startTime != null and startTime.length > 0">
+                        and orders_out_time >= #{startTime,jdbcType=VARCHAR}
+                    </when>
+                    <when test="endTime != null and endTime.length > 0">
+                        <![CDATA[and orders_out_time <= #{endTime,jdbcType=VARCHAR}]]>
+                    </when>
+                </choose>
+                group by platform,country,channel_name
+            )g on a.platform = g.platform and a.country = g.country and a.channel_name = g.channel_name
+
+    </select>
+
+    <select id="selectReportDataAndDate" resultMap="ReportResult" parameterType="com.yks.bigdata.dto.trackmore.LogisticReport" useCache="true">
+        select a.platform,a.country as buyer_country,a.channel_name,a.orders_out_time,a.paymentcount,b.shipcount,ROUND(b.shipcount/paymentcount,3) as orderexecution_percent
+        ,ifnull(c.internetcount,0) as internetcount,ifnull(c.internetcount/b.shipcount,0) as internet_percent,ifnull(c.internet_date/c.internetcount,0) as internet_date
+        ,ifnull(d.balecount,0)as balecount,ifnull(d.balecount/b.shipcount,0) as bale_percent,ifnull(d.bale_date/d.balecount,0) as bale_date
+        ,ifnull(e.trafficcount,0) as trafficcount,ifnull(e.trafficcount/b.shipcount,0) as traffic_percent,ifnull(e.traffic_date/e.trafficcount,0) as traffic_date
+        ,ifnull(f.landingcount,0) as landingcount,ifnull(f.landingcount/b.shipcount,0) as landing_percent,ifnull(f.landing_date/f.landingcount,0) as landing_date
+        ,ifnull(g.deliveredcount,0)as deliveredcount,ifnull(g.deliveredcount/b.shipcount,0) as delivered_percent,ifnull(g.delivered_date/g.deliveredcount,0) as delivered_date
+        ,ifnull(b.heavi,0)as heavi,ROUND(ifnull(b.heavi/b.shipcount,0),3) as avgheavi
+        ,ROUND(ifnull(b.fee,0),3)as fee,ROUND(ifnull(b.fee/b.shipcount,0),3) as avgprice
+        from(
+        /*已付款订单，默认是全部订单*/
+        select platform,country,channel_name,count(1) as paymentcount
+        ,DATE_FORMAT(orders_out_time,'%Y-%m-%d') as orders_out_time
+        from erp_orders a
+        INNER JOIN logistics_channel b on a.channel_name = b.yks_channel_name and b.`status` = 1
+        where 1=1
+        <if test="platform != null and platform.length() > 0">
+            and platform in (${platform})
+        </if>
+        <if test="buyerCountry != null and buyerCountry.length() > 0">
+            and country in (${buyerCountry})
+        </if>
+        <if test="channelName != null and channelName.length() > 0">
+            and channel_name in (${channelName})
+        </if>
+        <choose>
+            <when test="startTime != null and endTime != null and startTime.length > 0 and endTime.length > 0">
+                and orders_out_time between #{startTime,jdbcType=VARCHAR} and #{endTime,jdbcType=VARCHAR}
+            </when>
+            <when test="startTime != null and startTime.length > 0">
+                and orders_out_time >= #{startTime,jdbcType=VARCHAR}
+            </when>
+            <when test="endTime != null and endTime.length > 0">
+                <![CDATA[and orders_out_time <= #{endTime,jdbcType=VARCHAR}]]>
+            </when>
+        </choose>
+        group by platform,country,channel_name,DATE_FORMAT(orders_out_time,'%Y-%m-%d')
+        ) a
+        INNER JOIN (
+        /*已发货订单，orders_status = 5*/
+        select platform,country,channel_name,count(1) as shipcount,sum(IFNULL(heavi,0)) as heavi,sum(IFNULL(fee,0)) as fee
+        ,DATE_FORMAT(orders_out_time,'%Y-%m-%d') as orders_out_time
+        from erp_orders
+        where orders_status = 5
+        <if test="platform != null and platform.length() > 0">
+            and platform in (${platform})
+        </if>
+        <if test="buyerCountry != null and buyerCountry.length() > 0">
+            and country in (${buyerCountry})
+        </if>
+        <if test="channelName != null and channelName.length() > 0">
+            and channel_name in (${channelName})
+        </if>
+        <choose>
+            <when test="startTime != null and endTime != null and startTime.length > 0 and endTime.length > 0">
+                and orders_out_time between #{startTime,jdbcType=VARCHAR} and #{endTime,jdbcType=VARCHAR}
+            </when>
+            <when test="startTime != null and startTime.length > 0">
+                and orders_out_time >= #{startTime,jdbcType=VARCHAR}
+            </when>
+            <when test="endTime != null and endTime.length > 0">
+                <![CDATA[and orders_out_time <= #{endTime,jdbcType=VARCHAR}]]>
+            </when>
+        </choose>
+        group by platform,country,channel_name,DATE_FORMAT(orders_out_time,'%Y-%m-%d')
+        )b on a.platform = b.platform and a.country = b.country and a.channel_name = b.channel_name and a.orders_out_time = b.orders_out_time
+        LEFT JOIN (
+        /*已上网订单，track_status = 1-5 都是上网的*/
+        select platform,country,channel_name,count(1) as internetcount
+        ,DATE_FORMAT(orders_out_time,'%Y-%m-%d') as orders_out_time
+        ,sum(case when internet_date is null then 0 else (TIMESTAMPDIFF(MINUTE,orders_out_time,internet_date)/60/24) end) internet_date
+        from erp_orders
+        where (track_status = 1 or track_status = 2 or track_status = 3 or track_status = 4 or track_status = 5)
+        <if test="platform != null and platform.length() > 0">
+            and platform in (${platform})
+        </if>
+        <if test="buyerCountry != null and buyerCountry.length() > 0">
+            and country in (${buyerCountry})
+        </if>
+        <if test="channelName != null and channelName.length() > 0">
+            and channel_name in (${channelName})
+        </if>
+        <choose>
+            <when test="startTime != null and endTime != null and startTime.length > 0 and endTime.length > 0">
+                and orders_out_time between #{startTime,jdbcType=VARCHAR} and #{endTime,jdbcType=VARCHAR}
+            </when>
+            <when test="startTime != null and startTime.length > 0">
+                and orders_out_time >= #{startTime,jdbcType=VARCHAR}
+            </when>
+            <when test="endTime != null and endTime.length > 0">
+                <![CDATA[and orders_out_time <= #{endTime,jdbcType=VARCHAR}]]>
+            </when>
+        </choose>
+        group by platform,country,channel_name,DATE_FORMAT(orders_out_time,'%Y-%m-%d')
+        )c on a.platform = c.platform and a.country = c.country and a.channel_name = c.channel_name and a.orders_out_time = c.orders_out_time
+        LEFT JOIN (
+        /*已封发订单，track_status = 2-5 都是封发的*/
+        select platform,country,channel_name,count(1) as balecount
+        ,DATE_FORMAT(orders_out_time,'%Y-%m-%d') as orders_out_time
+        ,sum(case when bale_date is null then (TIMESTAMPDIFF(MINUTE,orders_out_time,DATE_ADD(internet_date,INTERVAL 1 DAY))/60/24) else (TIMESTAMPDIFF(MINUTE,orders_out_time,bale_date)/60/24) end) bale_date
+        from erp_orders
+        where (track_status = 2 or track_status = 3 or track_status = 4 or track_status = 5)
+        <if test="platform != null and platform.length() > 0">
+            and platform in (${platform})
+        </if>
+        <if test="buyerCountry != null and buyerCountry.length() > 0">
+            and country in (${buyerCountry})
+        </if>
+        <if test="channelName != null and channelName.length() > 0">
+            and channel_name in (${channelName})
+        </if>
+        <choose>
+            <when test="startTime != null and endTime != null and startTime.length > 0 and endTime.length > 0">
+                and orders_out_time between #{startTime,jdbcType=VARCHAR} and #{endTime,jdbcType=VARCHAR}
+            </when>
+            <when test="startTime != null and startTime.length > 0">
+                and orders_out_time >= #{startTime,jdbcType=VARCHAR}
+            </when>
+            <when test="endTime != null and endTime.length > 0">
+                <![CDATA[and orders_out_time <= #{endTime,jdbcType=VARCHAR}]]>
+            </when>
+        </choose>
+        group by platform,country,channel_name,DATE_FORMAT(orders_out_time,'%Y-%m-%d')
+        )d on a.platform = d.platform and a.country = d.country and a.channel_name = d.channel_name and a.orders_out_time = d.orders_out_time
+        LEFT JOIN (
+        /*已交航订单，track_status = 3-5 都是交航的*/
+        select platform,country,channel_name,count(1) as trafficcount
+        ,DATE_FORMAT(orders_out_time,'%Y-%m-%d') as orders_out_time
+        ,sum(case when traffic_date is null then (TIMESTAMPDIFF(MINUTE,orders_out_time,DATE_ADD(bale_date,INTERVAL 1 DAY))/60/24) else (TIMESTAMPDIFF(MINUTE,orders_out_time,traffic_date)/60/24) end) traffic_date
+        from erp_orders
+        where (track_status = 3 or track_status = 4 or track_status = 5)
+        <if test="platform != null and platform.length() > 0">
+            and platform in (${platform})
+        </if>
+        <if test="buyerCountry != null and buyerCountry.length() > 0">
+            and country in (${buyerCountry})
+        </if>
+        <if test="channelName != null and channelName.length() > 0">
+            and channel_name in (${channelName})
+        </if>
+        <choose>
+            <when test="startTime != null and endTime != null and startTime.length > 0 and endTime.length > 0">
+                and orders_out_time between #{startTime,jdbcType=VARCHAR} and #{endTime,jdbcType=VARCHAR}
+            </when>
+            <when test="startTime != null and startTime.length > 0">
+                and orders_out_time >= #{startTime,jdbcType=VARCHAR}
+            </when>
+            <when test="endTime != null and endTime.length > 0">
+                <![CDATA[and orders_out_time <= #{endTime,jdbcType=VARCHAR}]]>
+            </when>
+        </choose>
+        group by platform,country,channel_name,DATE_FORMAT(orders_out_time,'%Y-%m-%d')
+        )e on a.platform = e.platform and a.country = e.country and a.channel_name = e.channel_name and a.orders_out_time = e.orders_out_time
+        LEFT JOIN (
+        /*已落地订单，track_status = 4-5 都是落地的*/
+        select platform,country,channel_name,count(1) as landingcount
+        ,DATE_FORMAT(orders_out_time,'%Y-%m-%d') as orders_out_time
+        ,sum(case when landing_date is null then (TIMESTAMPDIFF(MINUTE,orders_out_time,DATE_ADD(traffic_date,INTERVAL 1 DAY))/60/24) else (TIMESTAMPDIFF(MINUTE,orders_out_time,landing_date)/60/24) end) landing_date
+        from erp_orders
+        where (track_status = 4 or track_status = 5)
+        <if test="platform != null and platform.length() > 0">
+            and platform in (${platform})
+        </if>
+        <if test="buyerCountry != null and buyerCountry.length() > 0">
+            and country in (${buyerCountry})
+        </if>
+        <if test="channelName != null and channelName.length() > 0">
+            and channel_name in (${channelName})
+        </if>
+        <choose>
+            <when test="startTime != null and endTime != null and startTime.length > 0 and endTime.length > 0">
+                and orders_out_time between #{startTime,jdbcType=VARCHAR} and #{endTime,jdbcType=VARCHAR}
+            </when>
+            <when test="startTime != null and startTime.length > 0">
+                and orders_out_time >= #{startTime,jdbcType=VARCHAR}
+            </when>
+            <when test="endTime != null and endTime.length > 0">
+                <![CDATA[and orders_out_time <= #{endTime,jdbcType=VARCHAR}]]>
+            </when>
+        </choose>
+        group by platform,country,channel_name,DATE_FORMAT(orders_out_time,'%Y-%m-%d')
+        )f on a.platform = f.platform and a.country = f.country and a.channel_name = f.channel_name and a.orders_out_time = f.orders_out_time
+        LEFT JOIN (
+        /*已妥投订单，track_status = 5 都是妥投的*/
+        select platform,country,channel_name,count(1) as deliveredcount
+        ,DATE_FORMAT(orders_out_time,'%Y-%m-%d') as orders_out_time
+        ,sum(case when delivered_date is null then (TIMESTAMPDIFF(MINUTE,orders_out_time,DATE_ADD(landing_date,INTERVAL 1 DAY))/60/24) else (TIMESTAMPDIFF(MINUTE,orders_out_time,delivered_date)/60/24) end) delivered_date
+        from erp_orders
+        where track_status = 5
+        <if test="platform != null and platform.length() > 0">
+            and platform in (${platform})
+        </if>
+        <if test="buyerCountry != null and buyerCountry.length() > 0">
+            and country in (${buyerCountry})
+        </if>
+        <if test="channelName != null and channelName.length() > 0">
+            and channel_name in (${channelName})
+        </if>
+        <choose>
+            <when test="startTime != null and endTime != null and startTime.length > 0 and endTime.length > 0">
+                and orders_out_time between #{startTime,jdbcType=VARCHAR} and #{endTime,jdbcType=VARCHAR}
+            </when>
+            <when test="startTime != null and startTime.length > 0">
+                and orders_out_time >= #{startTime,jdbcType=VARCHAR}
+            </when>
+            <when test="endTime != null and endTime.length > 0">
+                <![CDATA[and orders_out_time <= #{endTime,jdbcType=VARCHAR}]]>
+            </when>
+        </choose>
+        group by platform,country,channel_name,DATE_FORMAT(orders_out_time,'%Y-%m-%d')
+        )g on a.platform = g.platform and a.country = g.country and a.channel_name = g.channel_name and a.orders_out_time = g.orders_out_time
+
+    </select>
+
+    <select id="selectReportDataChannel" resultMap="ReportResult" parameterType="com.yks.bigdata.dto.trackmore.LogisticReport" useCache="true">
+        select a.channel_name,a.orders_out_time,a.paymentcount,b.shipcount,ROUND(b.shipcount/paymentcount,3) as orderexecution_percent
+        ,ifnull(c.internetcount,0) as internetcount,ifnull(c.internetcount/b.shipcount,0) as internet_percent,ifnull(c.internet_date/c.internetcount,0) as internet_date
+        ,ifnull(d.balecount,0)as balecount,ifnull(d.balecount/b.shipcount,0) as bale_percent,ifnull(d.bale_date/d.balecount,0) as bale_date
+        ,ifnull(e.trafficcount,0) as trafficcount,ifnull(e.trafficcount/b.shipcount,0) as traffic_percent,ifnull(e.traffic_date/e.trafficcount,0) as traffic_date
+        ,ifnull(f.landingcount,0) as landingcount,ifnull(f.landingcount/b.shipcount,0) as landing_percent,ifnull(f.landing_date/f.landingcount,0) as landing_date
+        ,ifnull(g.deliveredcount,0)as deliveredcount,ifnull(g.deliveredcount/b.shipcount,0) as delivered_percent,ifnull(g.delivered_date/g.deliveredcount,0) as delivered_date
+        ,ifnull(b.heavi,0)as heavi,ROUND(ifnull(b.heavi/b.shipcount,0),3) as avgheavi
+        ,ROUND(ifnull(b.fee,0),3)as fee,ROUND(ifnull(b.fee/b.shipcount,0),3) as avgprice
+        from(
+        /*已付款订单，默认是全部订单*/
+        select channel_name,DATE_FORMAT(orders_out_time,'%Y-%m-%d') as orders_out_time,count(1) as paymentcount
+        from erp_orders a
+        INNER JOIN logistics_channel b on a.channel_name = b.yks_channel_name and b.`status` = 1
+        where 1=1
+        <if test="channelName != null and channelName.length() > 0">
+            and channel_name in (${channelName})
+        </if>
+        <choose>
+            <when test="startTime != null and endTime != null and startTime.length > 0 and endTime.length > 0">
+                and orders_out_time between #{startTime,jdbcType=VARCHAR} and #{endTime,jdbcType=VARCHAR}
+            </when>
+            <when test="startTime != null and startTime.length > 0">
+                and orders_out_time >= #{startTime,jdbcType=VARCHAR}
+            </when>
+            <when test="endTime != null and endTime.length > 0">
+                <![CDATA[and orders_out_time <= #{endTime,jdbcType=VARCHAR}]]>
+            </when>
+        </choose>
+        group by channel_name,DATE_FORMAT(orders_out_time,'%Y-%m-%d')
+        ) a
+        INNER JOIN (
+        /*已发货订单，orders_status = 5*/
+        select channel_name,DATE_FORMAT(orders_out_time,'%Y-%m-%d') as orders_out_time
+        ,count(1) as shipcount,sum(IFNULL(heavi,0)) as heavi,sum(IFNULL(fee,0)) as fee
+        from erp_orders
+        where orders_status = 5
+        <if test="channelName != null and channelName.length() > 0">
+            and channel_name in (${channelName})
+        </if>
+        <choose>
+            <when test="startTime != null and endTime != null and startTime.length > 0 and endTime.length > 0">
+                and orders_out_time between #{startTime,jdbcType=VARCHAR} and #{endTime,jdbcType=VARCHAR}
+            </when>
+            <when test="startTime != null and startTime.length > 0">
+                and orders_out_time >= #{startTime,jdbcType=VARCHAR}
+            </when>
+            <when test="endTime != null and endTime.length > 0">
+                <![CDATA[and orders_out_time <= #{endTime,jdbcType=VARCHAR}]]>
+            </when>
+        </choose>
+        group by channel_name,DATE_FORMAT(orders_out_time,'%Y-%m-%d')
+        )b on a.channel_name = b.channel_name and a.orders_out_time = b.orders_out_time
+        LEFT JOIN (
+        /*已上网订单，track_status = 1-5 都是上网的*/
+        select channel_name,DATE_FORMAT(orders_out_time,'%Y-%m-%d') as orders_out_time,count(1) as internetcount
+        ,sum(case when internet_date is null then 0 else (TIMESTAMPDIFF(MINUTE,orders_out_time,internet_date)/60/24) end) internet_date
+        from erp_orders
+        where (track_status = 1 or track_status = 2 or track_status = 3 or track_status = 4 or track_status = 5)
+        <if test="channelName != null and channelName.length() > 0">
+            and channel_name in (${channelName})
+        </if>
+        <choose>
+            <when test="startTime != null and endTime != null and startTime.length > 0 and endTime.length > 0">
+                and orders_out_time between #{startTime,jdbcType=VARCHAR} and #{endTime,jdbcType=VARCHAR}
+            </when>
+            <when test="startTime != null and startTime.length > 0">
+                and orders_out_time >= #{startTime,jdbcType=VARCHAR}
+            </when>
+            <when test="endTime != null and endTime.length > 0">
+                <![CDATA[and orders_out_time <= #{endTime,jdbcType=VARCHAR}]]>
+            </when>
+        </choose>
+        group by channel_name,DATE_FORMAT(orders_out_time,'%Y-%m-%d')
+        )c on a.channel_name = c.channel_name and a.orders_out_time = c.orders_out_time
+        LEFT JOIN (
+        /*已封发订单，track_status = 2-5 都是封发的*/
+        select channel_name,DATE_FORMAT(orders_out_time,'%Y-%m-%d') as orders_out_time,count(1) as balecount
+        ,sum(case when bale_date is null then (TIMESTAMPDIFF(MINUTE,orders_out_time,DATE_ADD(internet_date,INTERVAL 1 DAY))/60/24) else (TIMESTAMPDIFF(MINUTE,orders_out_time,bale_date)/60/24) end) bale_date
+        from erp_orders
+        where (track_status = 2 or track_status = 3 or track_status = 4 or track_status = 5)
+        <if test="channelName != null and channelName.length() > 0">
+            and channel_name in (${channelName})
+        </if>
+        <choose>
+            <when test="startTime != null and endTime != null and startTime.length > 0 and endTime.length > 0">
+                and orders_out_time between #{startTime,jdbcType=VARCHAR} and #{endTime,jdbcType=VARCHAR}
+            </when>
+            <when test="startTime != null and startTime.length > 0">
+                and orders_out_time >= #{startTime,jdbcType=VARCHAR}
+            </when>
+            <when test="endTime != null and endTime.length > 0">
+                <![CDATA[and orders_out_time <= #{endTime,jdbcType=VARCHAR}]]>
+            </when>
+        </choose>
+        group by channel_name,DATE_FORMAT(orders_out_time,'%Y-%m-%d')
+        )d on a.channel_name = d.channel_name and a.orders_out_time = d.orders_out_time
+        LEFT JOIN (
+        /*已交航订单，track_status = 3-5 都是交航的*/
+        select channel_name,DATE_FORMAT(orders_out_time,'%Y-%m-%d') as orders_out_time,count(1) as trafficcount
+        ,sum(case when traffic_date is null then (TIMESTAMPDIFF(MINUTE,orders_out_time,DATE_ADD(bale_date,INTERVAL 1 DAY))/60/24) else (TIMESTAMPDIFF(MINUTE,orders_out_time,traffic_date)/60/24) end) traffic_date
+        from erp_orders
+        where (track_status = 3 or track_status = 4 or track_status = 5)
+        <if test="channelName != null and channelName.length() > 0">
+            and channel_name in (${channelName})
+        </if>
+        <choose>
+            <when test="startTime != null and endTime != null and startTime.length > 0 and endTime.length > 0">
+                and orders_out_time between #{startTime,jdbcType=VARCHAR} and #{endTime,jdbcType=VARCHAR}
+            </when>
+            <when test="startTime != null and startTime.length > 0">
+                and orders_out_time >= #{startTime,jdbcType=VARCHAR}
+            </when>
+            <when test="endTime != null and endTime.length > 0">
+                <![CDATA[and orders_out_time <= #{endTime,jdbcType=VARCHAR}]]>
+            </when>
+        </choose>
+        group by channel_name,DATE_FORMAT(orders_out_time,'%Y-%m-%d')
+        )e on  a.channel_name = e.channel_name and a.orders_out_time = e.orders_out_time
+        LEFT JOIN (
+        /*已落地订单，track_status = 4-5 都是落地的*/
+        select channel_name,DATE_FORMAT(orders_out_time,'%Y-%m-%d') as orders_out_time,count(1) as landingcount
+        ,sum(case when landing_date is null then (TIMESTAMPDIFF(MINUTE,orders_out_time,DATE_ADD(traffic_date,INTERVAL 1 DAY))/60/24) else (TIMESTAMPDIFF(MINUTE,orders_out_time,landing_date)/60/24) end) landing_date
+        from erp_orders
+        where (track_status = 4 or track_status = 5)
+        <if test="channelName != null and channelName.length() > 0">
+            and channel_name in (${channelName})
+        </if>
+        <choose>
+            <when test="startTime != null and endTime != null and startTime.length > 0 and endTime.length > 0">
+                and orders_out_time between #{startTime,jdbcType=VARCHAR} and #{endTime,jdbcType=VARCHAR}
+            </when>
+            <when test="startTime != null and startTime.length > 0">
+                and orders_out_time >= #{startTime,jdbcType=VARCHAR}
+            </when>
+            <when test="endTime != null and endTime.length > 0">
+                <![CDATA[and orders_out_time <= #{endTime,jdbcType=VARCHAR}]]>
+            </when>
+        </choose>
+        group by channel_name,DATE_FORMAT(orders_out_time,'%Y-%m-%d')
+        )f on a.channel_name = f.channel_name and a.orders_out_time = f.orders_out_time
+        LEFT JOIN (
+        /*已妥投订单，track_status = 5 都是妥投的*/
+        select channel_name,DATE_FORMAT(orders_out_time,'%Y-%m-%d') as orders_out_time,count(1) as deliveredcount
+        ,sum(case when delivered_date is null then (TIMESTAMPDIFF(MINUTE,orders_out_time,DATE_ADD(landing_date,INTERVAL 1 DAY))/60/24) else (TIMESTAMPDIFF(MINUTE,orders_out_time,delivered_date)/60/24) end) delivered_date
+        from erp_orders
+        where track_status = 5
+        <if test="channelName != null and channelName.length() > 0">
+            and channel_name in (${channelName})
+        </if>
+        <choose>
+            <when test="startTime != null and endTime != null and startTime.length > 0 and endTime.length > 0">
+                and orders_out_time between #{startTime,jdbcType=VARCHAR} and #{endTime,jdbcType=VARCHAR}
+            </when>
+            <when test="startTime != null and startTime.length > 0">
+                and orders_out_time >= #{startTime,jdbcType=VARCHAR}
+            </when>
+            <when test="endTime != null and endTime.length > 0">
+                <![CDATA[and orders_out_time <= #{endTime,jdbcType=VARCHAR}]]>
+            </when>
+        </choose>
+        group by channel_name,DATE_FORMAT(orders_out_time,'%Y-%m-%d')
+        )g on a.channel_name = g.channel_name and a.orders_out_time = g.orders_out_time
+
+    </select>
+    
+    
+</mapper>

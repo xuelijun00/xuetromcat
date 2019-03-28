@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yks.bigdata.dao.LogisticsDetailsMapper" >
+  <resultMap id="BaseResultMap" type="com.yks.bigdata.dto.trackmore.LogisticsDetails" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="date" property="date" jdbcType="TIMESTAMP" />
+    <result column="order_number" property="orderNumber" jdbcType="VARCHAR" />
+    <result column="platform" property="platform" jdbcType="VARCHAR" />
+    <result column="country" property="country" jdbcType="VARCHAR" />
+    <result column="channel" property="channel" jdbcType="VARCHAR" />
+    <result column="state" property="state" jdbcType="INTEGER" />
+    <result column="details" property="details" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, date, order_number, platform, country, channel, state, details
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from logistics_details
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  
+   <select id="selectLogisticsDetails" resultMap="BaseResultMap" parameterType="com.yks.bigdata.dto.trackmore.LogisticsDetails" useCache="true">
+        select
+        <include refid="Base_Column_List" />
+        from logistics_details
+        where 1=1
+        <if test="orderNumber != null and orderNumber.length > 0">
+            and order_number = #{orderNumber,jdbcType=VARCHAR}
+        </if>
+        <choose>
+            <when test="startTime != null and endTime != null and startTime.length > 0 and endTime.length > 0">
+                and date between #{startTime,jdbcType=VARCHAR} and #{endTime,jdbcType=VARCHAR}
+            </when>
+            <when test="startTime != null and startTime.length > 0">
+                and date > #{startTime,jdbcType=VARCHAR}
+            </when>
+            <when test="endTime != null and endTime.length > 0">
+                <![CDATA[and date < #{endTime,jdbcType=VARCHAR}]]>
+            </when>
+        </choose>
+    </select>
+  
+  
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from logistics_details
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.yks.bigdata.dto.trackmore.LogisticsDetails" >
+    insert into logistics_details (id, date, order_number, 
+      platform, country, channel, 
+      state, details)
+    values (#{id,jdbcType=INTEGER}, #{date,jdbcType=TIMESTAMP}, #{orderNumber,jdbcType=VARCHAR}, 
+      #{platform,jdbcType=VARCHAR}, #{country,jdbcType=VARCHAR}, #{channel,jdbcType=VARCHAR}, 
+      #{state,jdbcType=INTEGER}, #{details,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.yks.bigdata.dto.trackmore.LogisticsDetails" >
+    insert into logistics_details
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="date != null" >
+        date,
+      </if>
+      <if test="orderNumber != null" >
+        order_number,
+      </if>
+      <if test="platform != null" >
+        platform,
+      </if>
+      <if test="country != null" >
+        country,
+      </if>
+      <if test="channel != null" >
+        channel,
+      </if>
+      <if test="state != null" >
+        state,
+      </if>
+      <if test="details != null" >
+        details,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="date != null" >
+        #{date,jdbcType=TIMESTAMP},
+      </if>
+      <if test="orderNumber != null" >
+        #{orderNumber,jdbcType=VARCHAR},
+      </if>
+      <if test="platform != null" >
+        #{platform,jdbcType=VARCHAR},
+      </if>
+      <if test="country != null" >
+        #{country,jdbcType=VARCHAR},
+      </if>
+      <if test="channel != null" >
+        #{channel,jdbcType=VARCHAR},
+      </if>
+      <if test="state != null" >
+        #{state,jdbcType=INTEGER},
+      </if>
+      <if test="details != null" >
+        #{details,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.yks.bigdata.dto.trackmore.LogisticsDetails" >
+    update logistics_details
+    <set >
+      <if test="date != null" >
+        date = #{date,jdbcType=TIMESTAMP},
+      </if>
+      <if test="orderNumber != null" >
+        order_number = #{orderNumber,jdbcType=VARCHAR},
+      </if>
+      <if test="platform != null" >
+        platform = #{platform,jdbcType=VARCHAR},
+      </if>
+      <if test="country != null" >
+        country = #{country,jdbcType=VARCHAR},
+      </if>
+      <if test="channel != null" >
+        channel = #{channel,jdbcType=VARCHAR},
+      </if>
+      <if test="state != null" >
+        state = #{state,jdbcType=INTEGER},
+      </if>
+      <if test="details != null" >
+        details = #{details,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.yks.bigdata.dto.trackmore.LogisticsDetails" >
+    update logistics_details
+    set date = #{date,jdbcType=TIMESTAMP},
+      order_number = #{orderNumber,jdbcType=VARCHAR},
+      platform = #{platform,jdbcType=VARCHAR},
+      country = #{country,jdbcType=VARCHAR},
+      channel = #{channel,jdbcType=VARCHAR},
+      state = #{state,jdbcType=INTEGER},
+      details = #{details,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>

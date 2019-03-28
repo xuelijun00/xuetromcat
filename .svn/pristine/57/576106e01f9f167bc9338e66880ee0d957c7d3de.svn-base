@@ -1,0 +1,380 @@
+package com.yks.bigdata.service.trackmore.impl;
+
+import com.yks.bigdata.common.ExceptionEnum;
+import com.yks.bigdata.dao.Erp_ordersMapper;
+import com.yks.bigdata.dao.LogisticsChannelMapper;
+import com.yks.bigdata.dao.Request_taskMapper;
+import com.yks.bigdata.dao.TrackmoreAccountMapper;
+import com.yks.bigdata.dto.trackmore.ErpOrders;
+import com.yks.bigdata.dto.trackmore.LogisticsChannel;
+import com.yks.bigdata.dto.trackmore.RequestTask;
+import com.yks.bigdata.dto.trackmore.TrackmoreAccount;
+import com.yks.bigdata.service.trackmore.*;
+import com.yks.bigdata.util.ExecutorsUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+
+/**
+ * Created by zh on 2017/6/30.
+ */
+
+@Service
+@Transactional(value = "transactionManager")
+public class RequestTaskServiceImpl implements IRequestTaskService {
+
+    private static Logger log = LoggerFactory.getLogger(IRequestTaskService.class);
+
+    @Autowired
+    Request_taskMapper taskMapper;
+
+    @Autowired
+    Erp_ordersMapper erpOrdersMapper;
+
+    @Autowired
+    LogisticsChannelMapper channelMapper;
+
+    @Autowired
+    TrackmoreAccountMapper accountMapper;
+
+
+    @Autowired
+    ILogisticsPickupService pickupService;
+
+    @Autowired
+    ITrackmoreAccountService accountService;
+
+    @Autowired
+    ILogisticsChannelService logisticsChannelService;
+
+    @Autowired
+    IErpOrdersService erpOrdersService;
+
+    /**
+     * 数据聚合
+     * 生成request_task记录
+     */
+    public void aggregation() {
+
+        //获取 需要 取件execel中的erp_orders_id中的orders  取件表和erp_orders表 join
+        List<ErpOrders> ordersList = erpOrdersMapper.selectAvailablePickUpOrders();
+
+        ExecutorService es = ExecutorsUtils.getExecutors();
+        Collection tasks = new ArrayList();
+        List<List<ErpOrders>> splitCollections = splitOrders(ordersList);
+        for (List<ErpOrders> orders : splitCollections) {
+            tasks.add(new AddTasks(taskMapper, orders, channelMapper, accountMapper, pickupService,accountService));
+        }
+        try {
+            List<Future<Map<TrackmoreAccount, Integer>>> result = es.invokeAll(tasks);
+//            for (Future<Map<TrackmoreAccount, Integer>> f : result) {
+//                Map<TrackmoreAccount, Integer> map = f.get();
+//                Map.Entry<TrackmoreAccount, Integer> en = map.entrySet().iterator().next();
+//                TrackmoreAccount account = en.getKey();
+//                Integer quto = en.getValue();
+//                reduceAccountQuote(account, quto);
+//            }
+
+        } catch (Exception e) {
+            log.error("异常", e);
+        }
+    }
+
+    /**
+     * 生成request task
+     * @param ordersList
+     */
+    @Transactional(value = "transactionManager")
+    @Override
+    public void generateRequestTask(List<ErpOrders> ordersList) {
+        log.info("ready generate request task  size ---------------------------------" + ordersList.size());
+        List<List<RequestTask>> lists = splitOrdersGrenerateRequestTask(ordersList);
+        for (List<RequestTask> list:lists) {
+            taskMapper.addBatch(list);
+            log.info("insert request task  size ---------------------------------" + list.size());
+        }
+    }
+
+    /**
+     * 更新request task
+     *
+     * @param task
+     */
+    @Override
+    public void updateByPrimaryKeySelective(RequestTask task) {
+        taskMapper.updateByPrimaryKeySelective(task);
+    }
+
+    /**
+     * 获取所有任务池中的所有需要注册的requst_task数据 (request_task 表 查询条件task_status 为1 )
+     * @return
+     */
+    @Override
+    public List<RequestTask> getAllNeddRegisterRequestTask() {
+        return taskMapper.selectRequestTaskByStatus(1);
+    }
+
+    /**
+     * 获取所有任务池中的所有需要查询的requst_task数据 (request_task 表 查询条件task_status 为2 )
+     *
+     * @return
+     */
+    @Override
+    public List<RequestTask> getAllNeedQueryRequestTask() {
+        return taskMapper.selectRequestTaskByStatus(2);
+    }
+
+    /**
+     * 更新状态为 status=2
+     * 表示为已注册
+     *
+     * @param registerTasks
+     */
+    @Override
+    public void updateStatusRegister(List<RequestTask> registerTasks) {
+        taskMapper.updateStatusRegister(mkIds(registerTasks));
+    }
+
+    @Override
+    public void updateStatusRegister1(List<RequestTask> registerTasks) {
+        taskMapper.updateStatusRegister1(registerTasks);
+    }
+
+
+    private List<Integer> mkIds(List<RequestTask> registerTasks) {
+        ArrayList<Integer> ids = new ArrayList<>();
+        for (RequestTask task : registerTasks) {
+            ids.add(task.getId());
+        }
+        return ids;
+    }
+
+    /**
+     * 注册失败,更新为 request_task 表 task_status = 4
+     *
+     * @param registerTasks
+     */
+    @Override
+    public void updateStatusRegisterFailed(List<RequestTask> registerTasks) {
+        taskMapper.updateStatusRegisterFailed(mkIds(registerTasks));
+    }
+
+    /**
+     * request_task标记该条数据task_status=5 表示已经完结
+     *
+     * @param task
+     */
+    @Override
+    public void updateStatusFinish(RequestTask task) {
+        taskMapper.updateStatusFinish(task.getId());
+    }
+
+    @Override
+    public RequestTask selectByErpOrderId(Long erpOrdersId) {
+        return taskMapper.selectByErpOrderId(erpOrdersId);
+    }
+
+//    /**
+//     * 更新可用额度
+//     */
+//    @Transactional(value = "transactionManager")
+//    private void reduceAccountQuote(TrackmoreAccount account, Integer reduce) {
+//        account = accountMapper.selectByPrimaryKey(account.getId());
+//        int quote = account.getDataCount() - reduce;
+//        log.info(account.getAccount() + ": account 修改额度为 " + quote);
+//        if (quote < 0) {
+//            throw new RuntimeException("account出现异常,额度减少为负数");
+//        }
+//        account.setDataCount(quote);
+//        accountMapper.updateByPrimaryKey(account);
+//    }
+
+    private List<List<ErpOrders>> splitOrders(List<ErpOrders> list) {
+        if (list == null || list.size() == 0) {
+            return null;
+        }
+        ArrayList<List<ErpOrders>> result = new ArrayList<>();
+        List<ErpOrders> ordersList = new ArrayList<>();
+        for (int i = 0; i < list.size(); i++) {
+            ordersList.add(list.get(i));
+            //满1000个使用另外一个ordersList
+            if (ordersList.size() == 1000) {
+                result.add(ordersList);
+                ordersList = new ArrayList<>();
+            }
+        }
+        if (ordersList.size() != 0) {
+            result.add(ordersList);
+        }
+        return result;
+    }
+
+    private List<List<RequestTask>> splitOrdersGrenerateRequestTask(List<ErpOrders> list) {
+        if (list == null || list.size() == 0) {
+            return null;
+        }
+        Map<String, String> map = logisticsChannelService.selectLogisticsChannels();
+        List<List<RequestTask>> result = new ArrayList<>();
+        List<RequestTask> taskList = new ArrayList<>();
+        RequestTask task = null;
+        for (int i = 0; i < list.size(); i++) {
+            String channelCode = map.get(list.get(i).getChannelName());
+            ErpOrders orders = new ErpOrders();
+            orders.setErpOrdersId(list.get(i).getErpOrdersId());
+            if(StringUtils.isNotEmpty(channelCode) && list.get(i).getOrdersStatus() == 5){
+                task = new RequestTask(list.get(i).getErpOrdersId(),null,list.get(i).getOrdersMailCode(), channelCode,list.get(i).getChannelName());
+                taskList.add(task);
+                orders.setTrackStatus(ExceptionEnum.GENERATE_REQUEST_TASK_SUCCESS.getValue());
+            }else{
+                //标记为信息缺失
+                orders.setTrackStatus(ExceptionEnum.REQUEST_TASK_NOT_CHANNEL_CODE.getValue());
+            }
+            erpOrdersService.updateTrackmoreStatus(orders);
+            //满1000个使用另外一个taskList
+            if (taskList.size() == 1000) {
+                result.add(taskList);
+                taskList = new ArrayList<>();
+            }
+        }
+        if (taskList.size() != 0) {
+            result.add(taskList);
+        }
+        log.info("request task size----------------------------" + ((result.size() - 1) * 1000) + taskList.size());
+        return result;
+    }
+
+}
+
+class AddTasks implements Callable<Map<TrackmoreAccount, Integer>> {
+    private static Logger log = LoggerFactory.getLogger(AddTasks.class);
+    Request_taskMapper taskMapper;
+
+    List<ErpOrders> ordersList;
+
+    LogisticsChannelMapper channelMapper;
+
+    TrackmoreAccountMapper accountMapper;
+
+    ILogisticsPickupService pickupService;
+
+    ITrackmoreAccountService accountService;
+
+    /**
+     * 某个orderid中的freightcode不存在的orderid
+     */
+    private List<Long> errorOrdersList = new ArrayList<Long>();
+
+    public AddTasks(Request_taskMapper taskMapper, List<ErpOrders> ordersList, LogisticsChannelMapper channelMapper, TrackmoreAccountMapper accountMapper, ILogisticsPickupService pickupService, ITrackmoreAccountService accountService) {
+        this.taskMapper = taskMapper;
+        this.ordersList = ordersList;
+        this.channelMapper = channelMapper;
+        this.accountMapper = accountMapper;
+        this.pickupService = pickupService;
+        this.accountService = accountService;
+    }
+
+
+    /**
+     * Computes a result, or throws an exception if unable to do so.
+     *
+     * @return computed result
+     * @throws Exception if unable to compute a result
+     */
+    @Override
+    @Transactional(value = "transactionManager")
+    public Map<TrackmoreAccount, Integer> call() throws Exception {
+
+        log.info("插入数据 begin");
+        //获取 可用的account
+        TrackmoreAccount account = accountService.selectAvailableReduceAccount(ordersList.size());
+        if (account == null) {
+            log.error("没有可用的account账号,账号额度不够!!!!!");
+            return null;
+        }
+        //获取对应的渠道
+        List<LogisticsChannel> channels = channelMapper.retrievelByYksChannelCode(parseFreightcode());
+
+        //插入task数据
+        List<RequestTask> requestTask = createRequestTask(account, channels);
+        taskMapper.addBatch(requestTask);
+        //减少的额度 已结废弃 无用
+        Map<TrackmoreAccount, Integer> reduceMap = new HashMap<TrackmoreAccount, Integer>();
+        //reduceMap.put(account, (ordersList.size() - errorOrdersList.size()));
+
+        //更新pickup表中的status由未聚合(0)更新为已聚合(1)
+        updatePickUpToAggrationed();
+
+        log.info("插入数据 end");
+        return reduceMap;
+    }
+
+
+    private List<String> parseFreightcode() {
+        ArrayList<String> codes = new ArrayList<>();
+        for (ErpOrders order : ordersList) {
+            codes.add(order.getFreightcode());
+        }
+        return codes;
+    }
+
+
+    @Transactional(value = "transactionManager")
+    private void updatePickUpToAggrationed() {
+        pickupService.updatePickupToAggredBatch(getNeedBeUpdateOrderId());
+    }
+
+    private List<String> getNeedBeUpdateOrderId() {
+        ArrayList<String> orderIdsList = new ArrayList<>();
+        for (ErpOrders order : ordersList) {
+            if (!errorOrdersList.contains(order.getErpOrdersId())) {
+                orderIdsList.add(String.valueOf(order.getErpOrdersId()));
+            }
+        }
+        return orderIdsList;
+    }
+
+
+    private List<RequestTask> createRequestTask(TrackmoreAccount account, List<LogisticsChannel> channels) {
+        ArrayList<RequestTask> resultList = new ArrayList<>();
+        for (ErpOrders order : ordersList) {
+            if(taskMapper.selectByErpOrderId(order.getErpOrdersId()) != null){
+                continue;
+            }
+            RequestTask task = new RequestTask();
+            task.setTrackAccount(account.getAccount());
+            task.setErpOrdersId(order.getErpOrdersId());
+            //物流追踪码
+            task.setTrackingNumber(order.getOrdersMailCode());
+            LogisticsChannel channel = findChannel(order.getFreightcode(),order.getChannelName(), channels);
+            if (channel == null) {
+                log.error("物流渠道 " + order.getFreightcode() + "在logistics_channel 表中不存在! 内单号为:" + order.getErpOrdersId());
+                continue;
+            }
+            task.setCarrierCode(channel.getShortCode());
+            task.setChannelId(channel.getId());
+            task.setInsertAt(new Date());
+            task.setTaskStatus(1);
+            resultList.add(task);
+        }
+        return resultList;
+    }
+
+    private LogisticsChannel findChannel(String freightcode,String channelName, List<LogisticsChannel> channels) {
+
+        for (LogisticsChannel channel : channels) {
+            if (StringUtils.equals(channel.getYksChannelCode(), freightcode) && StringUtils.equals(channelName.trim(),channel.getYksChannelName().trim()))
+                return channel;
+        }
+        return null;
+    }
+
+
+}

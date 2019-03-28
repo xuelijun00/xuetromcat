@@ -1,0 +1,362 @@
+package com.yks.bigdata.service.trackmore.impl;
+
+import com.yks.bigdata.common.ExceptionEnum;
+import com.yks.bigdata.dao.Erp_ordersMapper;
+import com.yks.bigdata.dao.LogisticsChannelMapper;
+import com.yks.bigdata.dao.Request_taskMapper;
+import com.yks.bigdata.dao.TrackmoreAccountMapper;
+import com.yks.bigdata.dto.trackmore.*;
+import com.yks.bigdata.service.trackmore.*;
+import com.yks.bigdata.util.ExecutorsUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
+
+import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+
+/**
+ * Created by zh on 2017/6/30.
+ */
+
+@Service
+@Transactional(value = "transactionManager")
+public class RequestTaskServiceImpl implements IRequestTaskService {
+
+    private static Logger log = LoggerFactory.getLogger(IRequestTaskService.class);
+
+    @Autowired
+    Request_taskMapper taskMapper;
+
+    @Autowired
+    Erp_ordersMapper erpOrdersMapper;
+
+    @Autowired
+    ILogisticsPickupService pickupService;
+
+    @Autowired
+    ITrackmoreAccountService accountService;
+
+    @Autowired
+    ILogisticsChannelService logisticsChannelService;
+
+    @Autowired
+    IErpOrdersService erpOrdersService;
+
+    /**
+     * 数据聚合
+     * 生成request_task记录   (案例http://blog.csdn.net/w1014074794/article/details/51098746)
+     */
+    public void aggregation() {
+        //获取 需要 取件execel中的erp_orders_id中的orders  取件表和erp_orders表 join
+        /**
+         * 1、排除了已存在task中的数据
+         * 2、必须是在erp中的数据
+         * 3、必须是导入的数据，状态=0
+         */
+        List<ErpOrders> ordersList = erpOrdersMapper.selectAvailablePickUpOrders();
+        if(CollectionUtils.isEmpty(ordersList)){
+            return;
+        }
+        ExecutorService es = ExecutorsUtils.getExecutors();
+        Collection tasks = new ArrayList();
+        List<List<ErpOrders>> splitCollections = splitOrders(ordersList);
+        for (List<ErpOrders> orders : splitCollections) {
+            tasks.add(new AddTasks(taskMapper, orders, logisticsChannelService, pickupService,erpOrdersService));
+        }
+        try {
+            es.invokeAll(tasks);
+        } catch (Exception e) {
+            log.error("异常", e);
+        }
+    }
+
+    /**
+     * 生成request task
+     * @param ordersList
+     */
+    @Transactional(value = "transactionManager")
+    @Override
+    public void generateRequestTask(List<ErpOrders> ordersList) {
+        log.info("ready generate request task  size ---------------------------------" + ordersList.size());
+        List<List<RequestTask>> lists = splitOrdersGrenerateRequestTask(ordersList);
+        for (List<RequestTask> list:lists) {
+            taskMapper.addBatch(list);
+            log.info("insert request task  size ---------------------------------" + list.size());
+        }
+    }
+
+    /**
+     * 更新request task
+     *
+     * @param task
+     */
+    @Override
+    public void updateByPrimaryKeySelective(RequestTask task) {
+        taskMapper.updateByPrimaryKeySelective(task);
+    }
+
+    @Override
+    public int updateByErpOrderIdSelective(RequestTask record) {
+        return taskMapper.updateByErpOrderIdSelective(record);
+    }
+
+    @Override
+    public int updateByTrackNumSelective(RequestTask record) {
+        return taskMapper.updateByTrackNumSelective(record);
+    }
+
+    /**
+     * 获取所有任务池中的所有需要注册的requst_task数据 (request_task 表 查询条件task_status 为1 )
+     * @return
+     */
+    @Override
+    public List<RequestTask> getAllNeddRegisterRequestTask() {
+        return taskMapper.selectRequestTaskByStatus(1);
+    }
+
+    /**
+     * 获取所有任务池中的所有需要查询的requst_task数据 (request_task 表 查询条件task_status 为2 )
+     *
+     * @return
+     */
+    @Override
+    public List<RequestTask> getAllNeedQueryRequestTask() {
+        return taskMapper.selectRequestTaskByStatus(2);
+    }
+
+    @Override
+    public List<RequestTask> selectRequestTasks(RequestTask record) {
+        return taskMapper.selectRequestTasks(record);
+    }
+
+    @Override
+    public Integer selectRequestTasksCount(RequestTask record) {
+        return taskMapper.selectRequestTasksCount(record);
+    }
+
+    /**
+     * 更新状态为 status=2
+     * 表示为已注册
+     *
+     * @param registerTasks
+     */
+    @Override
+    public void updateStatusRegister(List<RequestTask> registerTasks) {
+        taskMapper.updateStatusRegister(mkIds(registerTasks));
+    }
+
+    @Override
+    public void updateStatusRegister1(List<RequestTask> registerTasks) {
+        taskMapper.updateStatusRegister1(registerTasks);
+    }
+
+
+    private List<Integer> mkIds(List<RequestTask> registerTasks) {
+        ArrayList<Integer> ids = new ArrayList<>();
+        for (RequestTask task : registerTasks) {
+            ids.add(task.getId());
+        }
+        return ids;
+    }
+
+    /**
+     * 注册失败,更新为 request_task 表 task_status = 4
+     *
+     * @param registerTasks
+     */
+    @Override
+    public void updateStatusRegisterFailed(List<RequestTask> registerTasks) {
+        taskMapper.updateStatusRegisterFailed(mkIds(registerTasks));
+    }
+
+    /**
+     * request_task标记该条数据task_status=5 表示已经完结
+     *
+     * @param id
+     */
+    @Override
+    public void updateStatusFinish(Integer id) {
+        taskMapper.updateStatusFinish(id);
+    }
+
+    @Override
+    public RequestTask selectByErpOrderId(Long erpOrdersId) {
+        return taskMapper.selectByErpOrderId(erpOrdersId);
+    }
+
+    private List<List<ErpOrders>> splitOrders(List<ErpOrders> list) {
+        if (list == null || list.size() == 0) {
+            return null;
+        }
+        ArrayList<List<ErpOrders>> result = new ArrayList<>();
+        List<ErpOrders> ordersList = new ArrayList<>();
+        for (int i = 0; i < list.size(); i++) {
+            ordersList.add(list.get(i));
+            //满10000个使用另外一个ordersList
+            if (ordersList.size() == 10000) {
+                result.add(ordersList);
+                ordersList = new ArrayList<>();
+            }
+        }
+        if (ordersList.size() != 0) {
+            result.add(ordersList);
+        }
+        return result;
+    }
+
+    private List<List<RequestTask>> splitOrdersGrenerateRequestTask(List<ErpOrders> list) {
+        if (list == null || list.size() == 0) {
+            return null;
+        }
+        Map<String, String> map = logisticsChannelService.selectLogisticsChannels();
+        List<List<RequestTask>> result = new ArrayList<>();
+        List<RequestTask> taskList = new ArrayList<>();
+        RequestTask task = null;
+        for (int i = 0; i < list.size(); i++) {
+            String channelCode = map.get(list.get(i).getChannelName());
+            ErpOrders orders = new ErpOrders();
+            orders.setErpOrdersId(list.get(i).getErpOrdersId());
+            if(StringUtils.isNotEmpty(channelCode) && list.get(i).getOrdersStatus() == 5){//是在启用的渠道里面，和状态是5的 是已发货的
+                task = new RequestTask(list.get(i).getErpOrdersId(),null,list.get(i).getOrdersMailCode(), channelCode,list.get(i).getChannelName());
+                taskList.add(task);
+                orders.setTrackStatus(ExceptionEnum.GENERATE_REQUEST_TASK_SUCCESS.getValue());
+            }else{
+                //标记为信息缺失
+                orders.setTrackStatus(ExceptionEnum.REQUEST_TASK_NOT_CHANNEL_CODE.getValue());
+            }
+            erpOrdersService.updateTrackmoreStatus(orders);
+            //满1000个使用另外一个taskList
+            if (taskList.size() == 1000) {
+                result.add(taskList);
+                taskList = new ArrayList<>();
+            }
+        }
+        if (taskList.size() != 0) {
+            result.add(taskList);
+        }
+        log.info("request task size----------------------------" + ((result.size() - 1) * 1000) + taskList.size());
+        return result;
+    }
+
+    @Override
+    public List<RequestTask> selectRequestTaskByPickup() {
+        //return taskMapper.selectRequestTaskByPickup("");
+        return null;
+    }
+
+    @Override
+    public List<RequestTask> selectByErpOrderIdBatch(String erpOrdersId) {
+        return taskMapper.selectByErpOrderIdBatch(erpOrdersId);
+    }
+}
+
+class AddTasks implements Callable<List<ErpOrders>> {
+
+    private static Logger log = LoggerFactory.getLogger(AddTasks.class);
+    Request_taskMapper taskMapper;
+
+    List<ErpOrders> ordersList;
+
+    ILogisticsPickupService pickupService;
+
+    ILogisticsChannelService logisticsChannelService;
+
+    IErpOrdersService erpOrdersService;
+
+    public AddTasks(Request_taskMapper taskMapper, List<ErpOrders> ordersList, ILogisticsChannelService logisticsChannelService
+            , ILogisticsPickupService pickupService, IErpOrdersService erpOrdersService) {
+        this.taskMapper = taskMapper;
+        this.ordersList = ordersList;
+        this.pickupService = pickupService;
+        this.logisticsChannelService = logisticsChannelService;
+        this.erpOrdersService = erpOrdersService;
+    }
+
+    /**
+     * Computes a result, or throws an exception if unable to do so.
+     *
+     * @return computed result
+     * @throws Exception if unable to compute a result
+     */
+    @Override
+    @Transactional(value = "transactionManager")
+    public List<ErpOrders> call() throws Exception {
+        log.info("插入数据 begin");
+        try {
+            //获取对应的渠道
+            Map<String, String> map = logisticsChannelService.selectLogisticsChannels();
+            //插入task数据
+            List<RequestTask> requestTask = createRequestTask(map);
+            taskMapper.addBatch(requestTask);
+            //更新pickup表中的status由未聚合(0)更新为已聚合(1)
+            updatePickUpToAggrationed();
+            updatErpOrdersStatus(requestTask);
+        }catch (Exception ex){
+            log.error(ex.getLocalizedMessage());
+        }
+        log.info("插入数据 end");
+        return ordersList;
+    }
+
+    @Transactional(value = "transactionManager")
+    private void updatePickUpToAggrationed() {
+        pickupService.updatePickupToAggredBatch(getNeedBeUpdateOrderId());
+    }
+
+    @Transactional(value = "transactionManager")
+    private void updatErpOrdersStatus(List<RequestTask> requestTask) {
+        for (RequestTask e:requestTask) {
+            ErpOrders order = new ErpOrders();
+            order.setErpOrdersId(e.getErpOrdersId());
+            order.setTrackStatus(ExceptionEnum.GENERATE_REQUEST_TASK_SUCCESS.getValue());
+            erpOrdersService.updateTrackmoreStatus(order);
+        }
+    }
+
+    private List<String> getNeedBeUpdateOrderId() {
+        ArrayList<String> orderIdsList = new ArrayList<>();
+        for (ErpOrders order : ordersList) {
+            orderIdsList.add(String.valueOf(order.getErpOrdersId()));
+        }
+        return orderIdsList;
+    }
+
+    private List<RequestTask> createRequestTask(Map<String, String> map) {
+        ArrayList<RequestTask> resultList = new ArrayList<>();
+        for (ErpOrders order : ordersList) {
+            if(taskMapper.selectByErpOrderId(order.getErpOrdersId()) != null){//校验是否已聚合
+                continue;
+            }
+            RequestTask task = new RequestTask();
+            task.setErpOrdersId(order.getErpOrdersId());
+            //物流追踪码
+            task.setTrackingNumber(order.getOrdersMailCode());
+            String channelCode = map.get(order.getChannelName());
+            if (channelCode == null) {
+                log.error("物流渠道 " + order.getChannelName() + "在logistics_channel 表中不存在! 内单号为:" + order.getErpOrdersId());
+                continue;
+            }
+            task.setChannel(order.getChannelName());
+            task.setCarrierCode(channelCode);
+            task.setInsertAt(new Date());
+            LogisticsPickup logisticsPickup = pickupService.selectLogisticsPickupByOrderId(order.getErpOrdersId().toString());
+            if(logisticsPickup == null || StringUtils.isEmpty(logisticsPickup.getAccount())){
+                task.setTaskStatus(1);
+            }else{
+                task.setTrackAccount(logisticsPickup.getAccount());
+                task.setTaskStatus(2);//存在账号表示导入时已注册，只需要请求信息
+            }
+            resultList.add(task);
+        }
+        return resultList;
+    }
+
+}

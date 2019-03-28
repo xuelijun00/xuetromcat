@@ -1,0 +1,30 @@
+spring.application.name=trackmore
+server.port=8080
+server.context-path=/trackmore
+
+#web CharacterEncodingFilter
+spring.http.encoding.charset=utf-8
+spring.http.encoding.force=true
+spring.http.encoding.enabled=true
+
+#thymeleaaf
+spring.thymeleaf.prefix=classpath:/templates/view/
+spring.thymeleaf.suffix=.html
+spring.thymeleaf.mode=HTML5
+spring.thymeleaf.encoding=UTF-8
+spring.thymeleaf.content-type=text/html
+spring.thymeleaf.cache=false
+
+#1h
+server.session.timeout=3600
+
+#elasticsearch
+#spring.data.elasticsearch.cluster-name=elasticsearch
+#spring.data.elasticsearch.local=false
+#spring.data.elasticsearch.repositories.enabled=true
+#spring.data.elasticsearch.cluster-nodes=192.168.5.206:9200
+
+#抓取并发
+fetch.thread.size=10
+#1是实时查询 2是批量查询
+fetch.type=1

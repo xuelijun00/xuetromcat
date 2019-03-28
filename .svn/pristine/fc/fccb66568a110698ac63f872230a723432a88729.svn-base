@@ -1,0 +1,55 @@
+package com.yks.bigdata.dto.trackmore;
+
+import java.util.Date;
+
+public class ErpEOrdersProcess {
+    private Integer id;
+
+    private Long erpOrdersId;
+
+    private Date processTime;
+
+    private Integer nodeStatus;
+
+    private Date createTime;
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public Long getErpOrdersId() {
+        return erpOrdersId;
+    }
+
+    public void setErpOrdersId(Long erpOrdersId) {
+        this.erpOrdersId = erpOrdersId;
+    }
+
+    public Date getProcessTime() {
+        return processTime;
+    }
+
+    public void setProcessTime(Date processTime) {
+        this.processTime = processTime;
+    }
+
+    public Integer getNodeStatus() {
+        return nodeStatus;
+    }
+
+    public void setNodeStatus(Integer nodeStatus) {
+        this.nodeStatus = nodeStatus;
+    }
+
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
+}

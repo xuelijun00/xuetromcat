@@ -1,0 +1,379 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yks.bigdata.dao.PhysicalMapper" >
+  <resultMap id="BaseResultMap" type="com.yks.bigdata.dto.trackmore.Physical" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="platform" property="platform" jdbcType="VARCHAR" />
+    <result column="country" property="country" jdbcType="VARCHAR" />
+    <result column="channel" property="channel" jdbcType="VARCHAR" />
+    <result column="payment_order" property="paymentOrder" jdbcType="VARCHAR" />
+    <result column="total_shipment" property="totalShipment" jdbcType="INTEGER" />
+    <result column="order_execution_ratio" property="orderExecutionRatio" jdbcType="REAL" />
+    <result column="internet_access" property="internetAccess" jdbcType="INTEGER" />
+    <result column="internet_rate" property="internetRate" jdbcType="REAL" />
+    <result column="avg_internet_days" property="avgInternetDays" jdbcType="REAL" />
+    <result column="number_of_seals" property="numberOfSeals" jdbcType="INTEGER" />
+    <result column="sealing_rate" property="sealingRate" jdbcType="REAL" />
+    <result column="avg_number_days_issued" property="avgNumberDaysIssued" jdbcType="REAL" />
+    <result column="intersection_number" property="intersectionNumber" jdbcType="INTEGER" />
+    <result column="interchange_rate" property="interchangeRate" jdbcType="REAL" />
+    <result column="avg_sailing_days" property="avgSailingDays" jdbcType="REAL" />
+    <result column="landing_number" property="landingNumber" jdbcType="INTEGER" />
+    <result column="landing_rate" property="landingRate" jdbcType="REAL" />
+    <result column="avg_landing_days" property="avgLandingDays" jdbcType="REAL" />
+    <result column="tuotou_number" property="tuotouNumber" jdbcType="INTEGER" />
+    <result column="tuotou_rate" property="tuotouRate" jdbcType="REAL" />
+    <result column="avg_number_days_tuotou" property="avgNumberDaysTuotou" jdbcType="REAL" />
+    <result column="total_weight" property="totalWeight" jdbcType="REAL" />
+    <result column="avg_weight" property="avgWeight" jdbcType="REAL" />
+    <result column="total_freight" property="totalFreight" jdbcType="REAL" />
+    <result column="avg_unit_price" property="avgUnitPrice" jdbcType="REAL" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, platform, country, channel, payment_order, total_shipment, order_execution_ratio, 
+    internet_access, internet_rate, avg_internet_days, number_of_seals, sealing_rate, 
+    avg_number_days_issued, intersection_number, interchange_rate, avg_sailing_days, 
+    landing_number, landing_rate, avg_landing_days, tuotou_number, tuotou_rate, avg_number_days_tuotou, 
+    total_weight, avg_weight, total_freight, avg_unit_price
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from physical
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  
+  
+  <select id="selectPhysical" resultMap="BaseResultMap" parameterType="com.yks.bigdata.dto.trackmore.Physical" useCache="true">
+        select
+        <include refid="Base_Column_List" />
+        from physical
+        where 1=1   
+         <if test="platform != null and platform.length > 0 ">
+            and platform in(${platform})
+        </if>
+         <if test="country != null and country.length > 0 ">
+            and country in(${country})
+        </if>
+         <if test="channel != null and channel.length > 0 ">
+            and channel in(${channel})
+        </if>  
+    </select>
+  
+  
+   <!--查询国家-->
+    <select id="selectCountry" resultMap="BaseResultMap" >
+        select DISTINCT country
+        from physical
+    </select>
+  
+  
+   <select id="selectplatform" resultMap="BaseResultMap" >
+        select DISTINCT platform
+        from physical
+    </select>
+    
+     <select id="selectchannel" resultMap="BaseResultMap" >
+        select DISTINCT channel
+        from physical
+    </select>
+  
+  
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from physical
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.yks.bigdata.dto.trackmore.Physical" >
+    insert into physical (id, platform, country, 
+      channel, payment_order, total_shipment, 
+      order_execution_ratio, internet_access, internet_rate, 
+      avg_internet_days, number_of_seals, sealing_rate, 
+      avg_number_days_issued, intersection_number, interchange_rate, 
+      avg_sailing_days, landing_number, landing_rate, 
+      avg_landing_days, tuotou_number, tuotou_rate, 
+      avg_number_days_tuotou, total_weight, avg_weight, 
+      total_freight, avg_unit_price)
+    values (#{id,jdbcType=INTEGER}, #{platform,jdbcType=VARCHAR}, #{country,jdbcType=VARCHAR}, 
+      #{channel,jdbcType=VARCHAR}, #{paymentOrder,jdbcType=VARCHAR}, #{totalShipment,jdbcType=INTEGER}, 
+      #{orderExecutionRatio,jdbcType=REAL}, #{internetAccess,jdbcType=INTEGER}, #{internetRate,jdbcType=REAL}, 
+      #{avgInternetDays,jdbcType=REAL}, #{numberOfSeals,jdbcType=INTEGER}, #{sealingRate,jdbcType=REAL}, 
+      #{avgNumberDaysIssued,jdbcType=REAL}, #{intersectionNumber,jdbcType=INTEGER}, #{interchangeRate,jdbcType=REAL}, 
+      #{avgSailingDays,jdbcType=REAL}, #{landingNumber,jdbcType=INTEGER}, #{landingRate,jdbcType=REAL}, 
+      #{avgLandingDays,jdbcType=REAL}, #{tuotouNumber,jdbcType=INTEGER}, #{tuotouRate,jdbcType=REAL}, 
+      #{avgNumberDaysTuotou,jdbcType=REAL}, #{totalWeight,jdbcType=REAL}, #{avgWeight,jdbcType=REAL}, 
+      #{totalFreight,jdbcType=REAL}, #{avgUnitPrice,jdbcType=REAL})
+  </insert>
+  <insert id="insertSelective" parameterType="com.yks.bigdata.dto.trackmore.Physical" >
+    insert into physical
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="platform != null" >
+        platform,
+      </if>
+      <if test="country != null" >
+        country,
+      </if>
+      <if test="channel != null" >
+        channel,
+      </if>
+      <if test="paymentOrder != null" >
+        payment_order,
+      </if>
+      <if test="totalShipment != null" >
+        total_shipment,
+      </if>
+      <if test="orderExecutionRatio != null" >
+        order_execution_ratio,
+      </if>
+      <if test="internetAccess != null" >
+        internet_access,
+      </if>
+      <if test="internetRate != null" >
+        internet_rate,
+      </if>
+      <if test="avgInternetDays != null" >
+        avg_internet_days,
+      </if>
+      <if test="numberOfSeals != null" >
+        number_of_seals,
+      </if>
+      <if test="sealingRate != null" >
+        sealing_rate,
+      </if>
+      <if test="avgNumberDaysIssued != null" >
+        avg_number_days_issued,
+      </if>
+      <if test="intersectionNumber != null" >
+        intersection_number,
+      </if>
+      <if test="interchangeRate != null" >
+        interchange_rate,
+      </if>
+      <if test="avgSailingDays != null" >
+        avg_sailing_days,
+      </if>
+      <if test="landingNumber != null" >
+        landing_number,
+      </if>
+      <if test="landingRate != null" >
+        landing_rate,
+      </if>
+      <if test="avgLandingDays != null" >
+        avg_landing_days,
+      </if>
+      <if test="tuotouNumber != null" >
+        tuotou_number,
+      </if>
+      <if test="tuotouRate != null" >
+        tuotou_rate,
+      </if>
+      <if test="avgNumberDaysTuotou != null" >
+        avg_number_days_tuotou,
+      </if>
+      <if test="totalWeight != null" >
+        total_weight,
+      </if>
+      <if test="avgWeight != null" >
+        avg_weight,
+      </if>
+      <if test="totalFreight != null" >
+        total_freight,
+      </if>
+      <if test="avgUnitPrice != null" >
+        avg_unit_price,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="platform != null" >
+        #{platform,jdbcType=VARCHAR},
+      </if>
+      <if test="country != null" >
+        #{country,jdbcType=VARCHAR},
+      </if>
+      <if test="channel != null" >
+        #{channel,jdbcType=VARCHAR},
+      </if>
+      <if test="paymentOrder != null" >
+        #{paymentOrder,jdbcType=VARCHAR},
+      </if>
+      <if test="totalShipment != null" >
+        #{totalShipment,jdbcType=INTEGER},
+      </if>
+      <if test="orderExecutionRatio != null" >
+        #{orderExecutionRatio,jdbcType=REAL},
+      </if>
+      <if test="internetAccess != null" >
+        #{internetAccess,jdbcType=INTEGER},
+      </if>
+      <if test="internetRate != null" >
+        #{internetRate,jdbcType=REAL},
+      </if>
+      <if test="avgInternetDays != null" >
+        #{avgInternetDays,jdbcType=REAL},
+      </if>
+      <if test="numberOfSeals != null" >
+        #{numberOfSeals,jdbcType=INTEGER},
+      </if>
+      <if test="sealingRate != null" >
+        #{sealingRate,jdbcType=REAL},
+      </if>
+      <if test="avgNumberDaysIssued != null" >
+        #{avgNumberDaysIssued,jdbcType=REAL},
+      </if>
+      <if test="intersectionNumber != null" >
+        #{intersectionNumber,jdbcType=INTEGER},
+      </if>
+      <if test="interchangeRate != null" >
+        #{interchangeRate,jdbcType=REAL},
+      </if>
+      <if test="avgSailingDays != null" >
+        #{avgSailingDays,jdbcType=REAL},
+      </if>
+      <if test="landingNumber != null" >
+        #{landingNumber,jdbcType=INTEGER},
+      </if>
+      <if test="landingRate != null" >
+        #{landingRate,jdbcType=REAL},
+      </if>
+      <if test="avgLandingDays != null" >
+        #{avgLandingDays,jdbcType=REAL},
+      </if>
+      <if test="tuotouNumber != null" >
+        #{tuotouNumber,jdbcType=INTEGER},
+      </if>
+      <if test="tuotouRate != null" >
+        #{tuotouRate,jdbcType=REAL},
+      </if>
+      <if test="avgNumberDaysTuotou != null" >
+        #{avgNumberDaysTuotou,jdbcType=REAL},
+      </if>
+      <if test="totalWeight != null" >
+        #{totalWeight,jdbcType=REAL},
+      </if>
+      <if test="avgWeight != null" >
+        #{avgWeight,jdbcType=REAL},
+      </if>
+      <if test="totalFreight != null" >
+        #{totalFreight,jdbcType=REAL},
+      </if>
+      <if test="avgUnitPrice != null" >
+        #{avgUnitPrice,jdbcType=REAL},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.yks.bigdata.dto.trackmore.Physical" >
+    update physical
+    <set >
+      <if test="platform != null" >
+        platform = #{platform,jdbcType=VARCHAR},
+      </if>
+      <if test="country != null" >
+        country = #{country,jdbcType=VARCHAR},
+      </if>
+      <if test="channel != null" >
+        channel = #{channel,jdbcType=VARCHAR},
+      </if>
+      <if test="paymentOrder != null" >
+        payment_order = #{paymentOrder,jdbcType=VARCHAR},
+      </if>
+      <if test="totalShipment != null" >
+        total_shipment = #{totalShipment,jdbcType=INTEGER},
+      </if>
+      <if test="orderExecutionRatio != null" >
+        order_execution_ratio = #{orderExecutionRatio,jdbcType=REAL},
+      </if>
+      <if test="internetAccess != null" >
+        internet_access = #{internetAccess,jdbcType=INTEGER},
+      </if>
+      <if test="internetRate != null" >
+        internet_rate = #{internetRate,jdbcType=REAL},
+      </if>
+      <if test="avgInternetDays != null" >
+        avg_internet_days = #{avgInternetDays,jdbcType=REAL},
+      </if>
+      <if test="numberOfSeals != null" >
+        number_of_seals = #{numberOfSeals,jdbcType=INTEGER},
+      </if>
+      <if test="sealingRate != null" >
+        sealing_rate = #{sealingRate,jdbcType=REAL},
+      </if>
+      <if test="avgNumberDaysIssued != null" >
+        avg_number_days_issued = #{avgNumberDaysIssued,jdbcType=REAL},
+      </if>
+      <if test="intersectionNumber != null" >
+        intersection_number = #{intersectionNumber,jdbcType=INTEGER},
+      </if>
+      <if test="interchangeRate != null" >
+        interchange_rate = #{interchangeRate,jdbcType=REAL},
+      </if>
+      <if test="avgSailingDays != null" >
+        avg_sailing_days = #{avgSailingDays,jdbcType=REAL},
+      </if>
+      <if test="landingNumber != null" >
+        landing_number = #{landingNumber,jdbcType=INTEGER},
+      </if>
+      <if test="landingRate != null" >
+        landing_rate = #{landingRate,jdbcType=REAL},
+      </if>
+      <if test="avgLandingDays != null" >
+        avg_landing_days = #{avgLandingDays,jdbcType=REAL},
+      </if>
+      <if test="tuotouNumber != null" >
+        tuotou_number = #{tuotouNumber,jdbcType=INTEGER},
+      </if>
+      <if test="tuotouRate != null" >
+        tuotou_rate = #{tuotouRate,jdbcType=REAL},
+      </if>
+      <if test="avgNumberDaysTuotou != null" >
+        avg_number_days_tuotou = #{avgNumberDaysTuotou,jdbcType=REAL},
+      </if>
+      <if test="totalWeight != null" >
+        total_weight = #{totalWeight,jdbcType=REAL},
+      </if>
+      <if test="avgWeight != null" >
+        avg_weight = #{avgWeight,jdbcType=REAL},
+      </if>
+      <if test="totalFreight != null" >
+        total_freight = #{totalFreight,jdbcType=REAL},
+      </if>
+      <if test="avgUnitPrice != null" >
+        avg_unit_price = #{avgUnitPrice,jdbcType=REAL},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.yks.bigdata.dto.trackmore.Physical" >
+    update physical
+    set platform = #{platform,jdbcType=VARCHAR},
+      country = #{country,jdbcType=VARCHAR},
+      channel = #{channel,jdbcType=VARCHAR},
+      payment_order = #{paymentOrder,jdbcType=VARCHAR},
+      total_shipment = #{totalShipment,jdbcType=INTEGER},
+      order_execution_ratio = #{orderExecutionRatio,jdbcType=REAL},
+      internet_access = #{internetAccess,jdbcType=INTEGER},
+      internet_rate = #{internetRate,jdbcType=REAL},
+      avg_internet_days = #{avgInternetDays,jdbcType=REAL},
+      number_of_seals = #{numberOfSeals,jdbcType=INTEGER},
+      sealing_rate = #{sealingRate,jdbcType=REAL},
+      avg_number_days_issued = #{avgNumberDaysIssued,jdbcType=REAL},
+      intersection_number = #{intersectionNumber,jdbcType=INTEGER},
+      interchange_rate = #{interchangeRate,jdbcType=REAL},
+      avg_sailing_days = #{avgSailingDays,jdbcType=REAL},
+      landing_number = #{landingNumber,jdbcType=INTEGER},
+      landing_rate = #{landingRate,jdbcType=REAL},
+      avg_landing_days = #{avgLandingDays,jdbcType=REAL},
+      tuotou_number = #{tuotouNumber,jdbcType=INTEGER},
+      tuotou_rate = #{tuotouRate,jdbcType=REAL},
+      avg_number_days_tuotou = #{avgNumberDaysTuotou,jdbcType=REAL},
+      total_weight = #{totalWeight,jdbcType=REAL},
+      avg_weight = #{avgWeight,jdbcType=REAL},
+      total_freight = #{totalFreight,jdbcType=REAL},
+      avg_unit_price = #{avgUnitPrice,jdbcType=REAL}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <title>YKS物流信息状态查询系统</title>
+    <script th:src="@{/jsLoad/code/load.js}" src="jsLoad/code/load.js" include="../top.html"></script>
+</head>
+<body class="gray-bg">
+<div class="wrapper wrapper-content">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>track more账号报表</h5>
+                </div>
+                <div class="ibox-content">
+                    <form class="form-inline request" method="get" th:action="@{/account/view1}" id="accountForm">
+                        <div class="form-group">
+                            <label>账号key</label>
+                            <textarea type="text" class="form-control"  name="key" th:text="${key ==null? '769dc19d-e517-4bf4-b318-959751eaf7f0':key}"/>
+                        </div>
+                        <div class="form-group">
+                            <label>请求数据</label>
+                            <textarea type="text" class="form-control"  name ="requestData" th:text="${requestData}"/>
+                        </div>
+                        <div class="form-group">
+                            <label>请求数据:</label>
+                            <div>{"tracking_number": "WC8150707240016","carrier_code":"sfcservice"}</div>
+                        </div>
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">查询</button>
+                        </div>
+                    </form>
+                    <div th:text="${responseData}"></div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script th:src="@{/jsLoad/code/load.js}" src="jsLoad/code/load.js" include="../js.html"></script>
+<!--加本页面 的js文件与js代码-->
+<script th:inline="javascript" th:src="@{/js/chosen.js}" ></script>
+<script th:inline="javascript" th:src="@{/js/trackmore/common.js}" ></script>
+
+
+</body>
+</html>

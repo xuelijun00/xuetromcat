@@ -1,0 +1,55 @@
+package com.yks.bigdata.dao;
+
+import com.yks.bigdata.dto.report.NodeDto;
+import com.yks.bigdata.dto.report.ReportSource;
+import com.yks.bigdata.dto.trackmore.ErpEOrdersProcess;
+import com.yks.bigdata.dto.trackmore.LogisticReport;
+import org.apache.ibatis.annotations.Param;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface ErpEOrdersProcessMapper {
+    int deleteByPrimaryKey(Integer id);
+    int deleteByErpOrderId(Long erpOrdersId);
+
+    int insert(ErpEOrdersProcess record);
+
+    int insertSelective(ErpEOrdersProcess record);
+
+    ErpEOrdersProcess selectByPrimaryKey(Integer id);
+
+    int updateByPrimaryKeySelective(ErpEOrdersProcess record);
+
+    int updateByPrimaryKey(ErpEOrdersProcess record);
+
+    /**
+     * 查询erp_orders 和 级联节点表
+     * @param channel
+     * @return
+     */
+    List<ReportSource> selectReportSource(@Param("channel") String channel, @Param("ordersutOutTime") String ordersutOutTime);
+
+    List<NodeDto> selectNodesByChannel(@Param("status") Integer status, @Param("channel") String channel, @Param("ordersutOutTime") String ordersutOutTime);
+
+    /**
+     * 查询汇总数据
+     * 渠道 日期 付款订单 发货总数 订单执行占比  总重量	平均重量	总运费	平均单价（/g）
+     * 按渠道和日期分组
+     * @param logisticReport
+     * @return
+     */
+    List<LogisticReport> selectReportCountGyChannelAndOrderOutDate(LogisticReport logisticReport);
+
+    /**
+     * count节点
+     * @param status  节点
+     * @param keystr 渠道加日期：IB2017-10-10
+     * @return
+     */
+    Integer selectNodeCount(@Param("status")Integer status,@Param("keystr")String keystr);
+
+    List<NodeDto> selectNodes(Long erpOrdersId);
+
+}

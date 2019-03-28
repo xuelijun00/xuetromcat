@@ -1,0 +1,34 @@
+package com.yks.bigdata.service.channel;
+
+import com.yks.bigdata.service.channel.ChannelIBService;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
+
+/**
+ * Created by liuxing on 2017/9/12.
+ */
+@RunWith(SpringRunner.class)
+@SpringBootTest
+@Ignore
+public class IBChannelServiceTest {
+
+    @Autowired
+    ChannelIBService ibChannelService;
+
+    @Test
+    public void queryIBApi() throws Exception {
+        ibChannelService.queryIBApi();
+    }
+
+    @Test
+    public void sendRequestQueryIBApi() throws Exception {
+        String url = "http://api.myib.com/v4/tracking/events?a=1&trackingCode=9200190204304400016771&trackingCode=9261290204304400029168&trackingCode=9200190204304400048185&trackingCode=9274890204304400069719&trackingCode=9200190204304400029177&trackingCode=9200190204304400051611&trackingCode=9274890204304400076960&trackingCode=9200190204304400024554&trackingCode=9274890204304400048240&trackingCode=9261290204304400069751&trackingCode=9205590204304400024564&trackingCode=9274890204304400058782&trackingCode=9274890204304400073945&trackingCode=9274890204304400062062&trackingCode=9274890204304400017024&trackingCode=9200190204304400030517&trackingCode=9274890204304400051806&trackingCode=9274890204304400073990&trackingCode=9274890204304400024596&trackingCode=9274890204304400048394&trackingCode=9274890204304400069955&trackingCode=9274890204304400019097&trackingCode=9274890204304400048424&trackingCode=9274890204304400069962&trackingCode=9200190204304400029306&trackingCode=9274890204304400058911&trackingCode=9274890204304400077035&trackingCode=9274890204304400029324&trackingCode=9261290204304400048459&trackingCode=9274890204304400069986&trackingCode=9274890204304400024640&trackingCode=9274890204304400048462&trackingCode=9274890204304400069993&trackingCode=9261290204304400024651&trackingCode=9274890204304400044884&trackingCode=9274890204304400070005&trackingCode=9274890204304400024664&trackingCode=9274890204304400052360&trackingCode=9274890204304400070012&trackingCode=9274890204304400048493&trackingCode=9274890204304400074379&trackingCode=9200190204304400029481&trackingCode=9274890204304400048554&trackingCode=9274890204304400070227&trackingCode=9274890204304400024695&trackingCode=9200190204304400048604&trackingCode=9274890204304400070241&trackingCode=9274890204304400029539&trackingCode=9274890204304400052551&trackingCode=9200190204304400067056";
+
+        ibChannelService.sendRequestQueryIBApi(url);
+    }
+
+}

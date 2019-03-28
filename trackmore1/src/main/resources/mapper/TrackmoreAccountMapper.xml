@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yks.bigdata.dao.TrackmoreAccountMapper" >
+  <resultMap id="BaseResultMap" type="com.yks.bigdata.dto.trackmore.TrackmoreAccount" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="account" property="account" jdbcType="VARCHAR" />
+    <result column="api_key" property="apiKey" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="data_count" property="dataCount" jdbcType="INTEGER" />
+    <result column="status" property="status" jdbcType="INTEGER" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, account, api_key, create_time, data_count, status
+  </sql>
+  
+  <select id="selectAvailableAccount" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select
+    <include refid="Base_Column_List" />
+    from trackmore_account
+    where data_count>=#{d,jdbcType=INTEGER} and status =1 limit 1
+  </select>
+
+  <select id="selectByAccount" resultMap="BaseResultMap"  parameterType="java.lang.String" >
+    select
+    <include refid="Base_Column_List" />
+    from trackmore_account
+    where account=#{account,jdbcType=VARCHAR}
+    limit 1
+  </select>
+
+  <select id="selectTrackmoreAccount" resultMap="BaseResultMap" parameterType="com.yks.bigdata.dto.trackmore.TrackmoreAccount">
+    select
+    <include refid="Base_Column_List" />
+    from trackmore_account
+    where 1=1
+    <if test="account != null and account.length > 0">
+      and account like CONCAT('%',#{account,jdbcType=VARCHAR},'%')
+    </if>
+    <if test="createDate != null and createDate.length > 0">
+      and DATE_FORMAT(create_time,'%Y-%m-%d') = #{createDate,jdbcType=VARCHAR}
+    </if>
+  </select>
+  
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from trackmore_account
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from trackmore_account
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.yks.bigdata.dto.trackmore.TrackmoreAccount" >
+    insert into trackmore_account (id, account, api_key, 
+      create_time, data_count, status
+      )
+    values (#{id,jdbcType=INTEGER}, #{account,jdbcType=VARCHAR}, #{apiKey,jdbcType=VARCHAR}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{dataCount,jdbcType=INTEGER}, #{status,jdbcType=INTEGER}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.yks.bigdata.dto.trackmore.TrackmoreAccount" >
+    insert into trackmore_account
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="account != null" >
+        account,
+      </if>
+      <if test="apiKey != null" >
+        api_key,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="dataCount != null" >
+        data_count,
+      </if>
+      <if test="status != null" >
+        status,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="account != null" >
+        #{account,jdbcType=VARCHAR},
+      </if>
+      <if test="apiKey != null" >
+        #{apiKey,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="dataCount != null" >
+        #{dataCount,jdbcType=INTEGER},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.yks.bigdata.dto.trackmore.TrackmoreAccount" >
+    update trackmore_account
+    <set >
+      <if test="account != null" >
+        account = #{account,jdbcType=VARCHAR},
+      </if>
+      <if test="apiKey != null" >
+        api_key = #{apiKey,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="dataCount != null" >
+        data_count = #{dataCount,jdbcType=INTEGER},
+      </if>
+      <if test="status != null" >
+        status = #{status,jdbcType=INTEGER},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.yks.bigdata.dto.trackmore.TrackmoreAccount" >
+    update trackmore_account
+    set account = #{account,jdbcType=VARCHAR},
+      api_key = #{apiKey,jdbcType=VARCHAR},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      data_count = #{dataCount,jdbcType=INTEGER},
+      status = #{status,jdbcType=INTEGER}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>

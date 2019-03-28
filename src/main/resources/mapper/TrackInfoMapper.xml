@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yks.bigdata.dao.Track_infoMapper" >
+  <resultMap id="BaseResultMap" type="com.yks.bigdata.dto.trackmore.TrackInfo" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="task_id" property="taskId" jdbcType="INTEGER" />
+    <result column="tracking_number" property="trackingNumber" jdbcType="VARCHAR" />
+    <result column="carrier_code" property="carrierCode" jdbcType="VARCHAR" />
+    <result column="status" property="status" jdbcType="VARCHAR" />
+    <result column="created_at" property="createdAt" jdbcType="TIMESTAMP" />
+    <result column="updated_at" property="updatedAt" jdbcType="TIMESTAMP" />
+    <result column="lastEvent" property="lastevent" jdbcType="VARCHAR" />
+    <result column="lastUpdateTime" property="lastupdatetime" jdbcType="TIMESTAMP" />
+    <result column="original_country" property="originalCountry" jdbcType="VARCHAR" />
+    <result column="destination_country" property="destinationCountry" jdbcType="VARCHAR" />
+    <result column="create_at" property="createAt" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, task_id, tracking_number, carrier_code, status, created_at, updated_at, lastEvent, 
+    lastUpdateTime, original_country, destination_country, create_at
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from track_info
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+
+  <select id="selectByTaskId" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select
+    <include refid="Base_Column_List" />
+    from track_info
+    where task_id = #{taskId,jdbcType=INTEGER}
+  </select>
+
+	<select id="selectById" resultMap="BaseResultMap" parameterType="java.lang.String" >
+	    select
+	    <include refid="Base_Column_List" />
+	    from track_info
+	    where 1=1
+        <if test="trackingNumber != null and trackingNumber.length > 0">
+            and tracking_number = #{trackingNumber,jdbcType=VARCHAR}
+        </if>	    
+	  </select>
+
+
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from track_info
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.yks.bigdata.dto.trackmore.TrackInfo"  useGeneratedKeys="true" keyProperty="id" >
+    insert into track_info ( task_id, tracking_number,
+      carrier_code, status, created_at, 
+      updated_at, lastEvent, lastUpdateTime, 
+      original_country, destination_country, create_at
+      )
+    values ( #{taskId,jdbcType=INTEGER}, #{trackingNumber,jdbcType=VARCHAR},
+      #{carrierCode,jdbcType=VARCHAR}, #{status,jdbcType=VARCHAR}, #{createdAt,jdbcType=TIMESTAMP}, 
+      #{updatedAt,jdbcType=TIMESTAMP}, #{lastevent,jdbcType=VARCHAR}, #{lastupdatetime,jdbcType=TIMESTAMP}, 
+      #{originalCountry,jdbcType=VARCHAR}, #{destinationCountry,jdbcType=VARCHAR}, #{createAt,jdbcType=TIMESTAMP}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.yks.bigdata.dto.trackmore.TrackInfo" >
+    insert into track_info
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="taskId != null" >
+        task_id,
+      </if>
+      <if test="trackingNumber != null" >
+        tracking_number,
+      </if>
+      <if test="carrierCode != null" >
+        carrier_code,
+      </if>
+      <if test="status != null" >
+        status,
+      </if>
+      <if test="createdAt != null" >
+        created_at,
+      </if>
+      <if test="updatedAt != null" >
+        updated_at,
+      </if>
+      <if test="lastevent != null" >
+        lastEvent,
+      </if>
+      <if test="lastupdatetime != null" >
+        lastUpdateTime,
+      </if>
+      <if test="originalCountry != null" >
+        original_country,
+      </if>
+      <if test="destinationCountry != null" >
+        destination_country,
+      </if>
+      <if test="createAt != null" >
+        create_at,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="taskId != null" >
+        #{taskId,jdbcType=INTEGER},
+      </if>
+      <if test="trackingNumber != null" >
+        #{trackingNumber,jdbcType=VARCHAR},
+      </if>
+      <if test="carrierCode != null" >
+        #{carrierCode,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=VARCHAR},
+      </if>
+      <if test="createdAt != null" >
+        #{createdAt,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updatedAt != null" >
+        #{updatedAt,jdbcType=TIMESTAMP},
+      </if>
+      <if test="lastevent != null" >
+        #{lastevent,jdbcType=VARCHAR},
+      </if>
+      <if test="lastupdatetime != null" >
+        #{lastupdatetime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="originalCountry != null" >
+        #{originalCountry,jdbcType=VARCHAR},
+      </if>
+      <if test="destinationCountry != null" >
+        #{destinationCountry,jdbcType=VARCHAR},
+      </if>
+      <if test="createAt != null" >
+        #{createAt,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.yks.bigdata.dto.trackmore.TrackInfo" >
+    update track_info
+    <set >
+      <if test="taskId != null" >
+        task_id = #{taskId,jdbcType=INTEGER},
+      </if>
+      <if test="trackingNumber != null" >
+        tracking_number = #{trackingNumber,jdbcType=VARCHAR},
+      </if>
+      <if test="carrierCode != null" >
+        carrier_code = #{carrierCode,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null" >
+        status = #{status,jdbcType=VARCHAR},
+      </if>
+      <if test="createdAt != null" >
+        created_at = #{createdAt,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updatedAt != null" >
+        updated_at = #{updatedAt,jdbcType=TIMESTAMP},
+      </if>
+      <if test="lastevent != null" >
+        lastEvent = #{lastevent,jdbcType=VARCHAR},
+      </if>
+      <if test="lastupdatetime != null" >
+        lastUpdateTime = #{lastupdatetime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="originalCountry != null" >
+        original_country = #{originalCountry,jdbcType=VARCHAR},
+      </if>
+      <if test="destinationCountry != null" >
+        destination_country = #{destinationCountry,jdbcType=VARCHAR},
+      </if>
+      <if test="createAt != null" >
+        create_at = #{createAt,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.yks.bigdata.dto.trackmore.TrackInfo" >
+    update track_info
+    set task_id = #{taskId,jdbcType=INTEGER},
+      tracking_number = #{trackingNumber,jdbcType=VARCHAR},
+      carrier_code = #{carrierCode,jdbcType=VARCHAR},
+      status = #{status,jdbcType=VARCHAR},
+      created_at = #{createdAt,jdbcType=TIMESTAMP},
+      updated_at = #{updatedAt,jdbcType=TIMESTAMP},
+      lastEvent = #{lastevent,jdbcType=VARCHAR},
+      lastUpdateTime = #{lastupdatetime,jdbcType=TIMESTAMP},
+      original_country = #{originalCountry,jdbcType=VARCHAR},
+      destination_country = #{destinationCountry,jdbcType=VARCHAR},
+      create_at = #{createAt,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>

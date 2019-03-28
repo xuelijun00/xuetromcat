@@ -1,0 +1,281 @@
+package com.yks.bigdata.config;
+
+import com.alibaba.druid.pool.DruidDataSource;
+import com.alibaba.druid.pool.DruidDataSourceFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceBuilder;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.core.io.ClassPathResource;
+
+import javax.sql.DataSource;
+
+/**
+ * Created by Administrator on 2017/6/29.
+ */
+@Configuration
+@PropertySource(value = "classpath:config/db.properties")
+public class DataSourceConfiguration {
+
+    private final static Logger LOG = LoggerFactory.getLogger(DataSourceConfiguration.class);
+
+    /**
+     * 数据源类型
+     */
+    private Class<? extends DataSource> type;
+    @Value("${db.master.url}")
+    private String url;
+    @Value("${db.master.username}")
+    private String username;
+    @Value("${db.master.password}")
+    private String password;
+    @Value("${db.master.driver-class-name}")
+    private String driverClassName;
+    @Value("${db.master.initialSize}")
+    private int initialSize;
+    @Value("${db.master.minIdle}")
+    private int minIdle;
+    @Value("${db.master.maxActive}")
+    private int maxActive;
+    @Value("${db.master.maxWait}")
+    private int maxWait;
+    @Value("${db.master.timeBetweenEvictionRunsMillis}")
+    private int timeBetweenEvictionRunsMillis;
+    @Value("${db.master.minEvictableIdleTimeMillis}")
+    private int minEvictableIdleTimeMillis;
+    @Value("${db.master.validationQuery}")
+    private String validationQuery;
+    @Value("${db.master.validationQueryTimeout}")
+    private int validationQueryTimeout;
+    @Value("${db.master.testWhileIdle}")
+    private boolean testWhileIdle;
+    @Value("${db.master.testOnBorrow}")
+    private boolean testOnBorrow;
+    @Value("${db.master.testOnReturn}")
+    private boolean testOnReturn;
+    @Value("${db.master.poolPreparedStatements}")
+    private boolean poolPreparedStatements;
+    @Value("${db.master.maxPoolPreparedStatementPerConnectionSize}")
+    private int maxPoolPreparedStatementPerConnectionSize;
+    @Value("${db.master.filters}")
+    private String filters;
+    @Value("${db.master.connectionProperties}")
+    private String connectionProperties;
+
+
+    /**
+     * 创建主数据源
+     * @return DataSource
+     */
+    @Bean(name = "masterDataSource")
+    @Primary
+    @ConfigurationProperties(prefix = "db.master")
+    public DataSource masterDataSource() {
+        LOG.info("-------------------- masterDataSource init ---------------------");
+        DruidDataSource datasource = new DruidDataSource();
+        datasource.setUrl(url);
+        datasource.setUsername(username);
+        datasource.setPassword(password);
+        datasource.setDriverClassName(driverClassName);
+
+        //configuration
+        datasource.setInitialSize(initialSize);
+        datasource.setMinIdle(minIdle);
+        datasource.setMaxActive(maxActive);
+        datasource.setMaxWait(maxWait);
+        datasource.setTimeBetweenEvictionRunsMillis(timeBetweenEvictionRunsMillis);
+        datasource.setMinEvictableIdleTimeMillis(minEvictableIdleTimeMillis);
+        datasource.setValidationQuery(validationQuery);
+        datasource.setValidationQueryTimeout(validationQueryTimeout);
+        datasource.setTestWhileIdle(testWhileIdle);
+        datasource.setTestOnBorrow(testOnBorrow);
+        datasource.setTestOnReturn(testOnReturn);
+        datasource.setPoolPreparedStatements(poolPreparedStatements);
+        datasource.setMaxPoolPreparedStatementPerConnectionSize(maxPoolPreparedStatementPerConnectionSize);
+        try{datasource.setFilters(filters);}catch (Exception ex){LOG.error("主数据源创建错误："+ex.getLocalizedMessage());}
+        datasource.setConnectionProperties(connectionProperties);
+        return datasource;
+        //return DataSourceBuilder.create().type(type).build();
+    }
+
+    /**
+     * 创建老erp据源
+     * @return DataSource
+     */
+    @Bean(name = "erpDataSource")
+    @ConfigurationProperties(prefix = "db.erp")
+    public DataSource erpDataSource() {
+        LOG.info("-------------------- erpDataSource init ---------------------");
+        return DataSourceBuilder.create().type(type).build();
+    }
+
+    /**
+     * 创建老bi据源
+     * 主要是为了获取账号对应的平台
+     * @return DataSource
+     */
+    @Bean(name = "biDataSource")
+    @ConfigurationProperties(prefix = "db.bi")
+    public DataSource biDataSource() {
+        LOG.info("-------------------- biDataSource init ---------------------");
+        return DataSourceBuilder.create().type(type).build();
+    }
+
+    public Class<? extends DataSource> getType() {
+        return type;
+    }
+
+    public void setType(Class<? extends DataSource> type) {
+        this.type = type;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getDriverClassName() {
+        return driverClassName;
+    }
+
+    public void setDriverClassName(String driverClassName) {
+        this.driverClassName = driverClassName;
+    }
+
+    public int getInitialSize() {
+        return initialSize;
+    }
+
+    public void setInitialSize(int initialSize) {
+        this.initialSize = initialSize;
+    }
+
+    public int getMinIdle() {
+        return minIdle;
+    }
+
+    public void setMinIdle(int minIdle) {
+        this.minIdle = minIdle;
+    }
+
+    public int getMaxActive() {
+        return maxActive;
+    }
+
+    public void setMaxActive(int maxActive) {
+        this.maxActive = maxActive;
+    }
+
+    public int getMaxWait() {
+        return maxWait;
+    }
+
+    public void setMaxWait(int maxWait) {
+        this.maxWait = maxWait;
+    }
+
+    public int getTimeBetweenEvictionRunsMillis() {
+        return timeBetweenEvictionRunsMillis;
+    }
+
+    public void setTimeBetweenEvictionRunsMillis(int timeBetweenEvictionRunsMillis) {
+        this.timeBetweenEvictionRunsMillis = timeBetweenEvictionRunsMillis;
+    }
+
+    public int getMinEvictableIdleTimeMillis() {
+        return minEvictableIdleTimeMillis;
+    }
+
+    public void setMinEvictableIdleTimeMillis(int minEvictableIdleTimeMillis) {
+        this.minEvictableIdleTimeMillis = minEvictableIdleTimeMillis;
+    }
+
+    public String getValidationQuery() {
+        return validationQuery;
+    }
+
+    public void setValidationQuery(String validationQuery) {
+        this.validationQuery = validationQuery;
+    }
+
+    public boolean isTestWhileIdle() {
+        return testWhileIdle;
+    }
+
+    public void setTestWhileIdle(boolean testWhileIdle) {
+        this.testWhileIdle = testWhileIdle;
+    }
+
+    public boolean isTestOnBorrow() {
+        return testOnBorrow;
+    }
+
+    public void setTestOnBorrow(boolean testOnBorrow) {
+        this.testOnBorrow = testOnBorrow;
+    }
+
+    public boolean isTestOnReturn() {
+        return testOnReturn;
+    }
+
+    public void setTestOnReturn(boolean testOnReturn) {
+        this.testOnReturn = testOnReturn;
+    }
+
+    public boolean isPoolPreparedStatements() {
+        return poolPreparedStatements;
+    }
+
+    public void setPoolPreparedStatements(boolean poolPreparedStatements) {
+        this.poolPreparedStatements = poolPreparedStatements;
+    }
+
+    public int getMaxPoolPreparedStatementPerConnectionSize() {
+        return maxPoolPreparedStatementPerConnectionSize;
+    }
+
+    public void setMaxPoolPreparedStatementPerConnectionSize(int maxPoolPreparedStatementPerConnectionSize) {
+        this.maxPoolPreparedStatementPerConnectionSize = maxPoolPreparedStatementPerConnectionSize;
+    }
+
+    public String getFilters() {
+        return filters;
+    }
+
+    public void setFilters(String filters) {
+        this.filters = filters;
+    }
+
+    public String getConnectionProperties() {
+        return connectionProperties;
+    }
+
+    public void setConnectionProperties(String connectionProperties) {
+        this.connectionProperties = connectionProperties;
+    }
+}

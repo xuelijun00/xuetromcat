@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yks.bigdata.dao.ErpCountryMapper" >
+  <resultMap id="BaseResultMap" type="com.yks.bigdata.dto.trackmore.ErpCountry" >
+    <id column="country_id" property="countryId" jdbcType="INTEGER" />
+    <result column="country_en" property="countryEn" jdbcType="VARCHAR" />
+    <result column="country_cn" property="countryCn" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    country_id, country_en, country_cn
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from erp_country
+    where country_id = #{countryId,jdbcType=INTEGER}
+  </select>
+
+  <select id="selectErpCountry" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from erp_country
+  </select>
+
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from erp_country
+    where country_id = #{countryId,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.yks.bigdata.dto.trackmore.ErpCountry" >
+    insert into erp_country (country_id, country_en, country_cn
+      )
+    values (#{countryId,jdbcType=INTEGER}, #{countryEn,jdbcType=VARCHAR}, #{countryCn,jdbcType=VARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.yks.bigdata.dto.trackmore.ErpCountry" >
+    insert into erp_country
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="countryId != null" >
+        country_id,
+      </if>
+      <if test="countryEn != null" >
+        country_en,
+      </if>
+      <if test="countryCn != null" >
+        country_cn,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="countryId != null" >
+        #{countryId,jdbcType=INTEGER},
+      </if>
+      <if test="countryEn != null" >
+        #{countryEn,jdbcType=VARCHAR},
+      </if>
+      <if test="countryCn != null" >
+        #{countryCn,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.yks.bigdata.dto.trackmore.ErpCountry" >
+    update erp_country
+    <set >
+      <if test="countryEn != null" >
+        country_en = #{countryEn,jdbcType=VARCHAR},
+      </if>
+      <if test="countryCn != null" >
+        country_cn = #{countryCn,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where country_id = #{countryId,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.yks.bigdata.dto.trackmore.ErpCountry" >
+    update erp_country
+    set country_en = #{countryEn,jdbcType=VARCHAR},
+      country_cn = #{countryCn,jdbcType=VARCHAR}
+    where country_id = #{countryId,jdbcType=INTEGER}
+  </update>
+</mapper>

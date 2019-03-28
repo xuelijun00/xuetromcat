@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yks.bigdata.dao.LogisticsChannelMapper" >
+  <resultMap id="BaseResultMap" type="com.yks.bigdata.dto.trackmore.LogisticsChannel" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="short_code" property="shortCode" jdbcType="VARCHAR" />
+    <result column="english_name" property="englishName" jdbcType="VARCHAR" />
+    <result column="chiness_name" property="chinessName" jdbcType="VARCHAR" />
+    <result column="yks_channel_code" property="yksChannelCode" jdbcType="VARCHAR" />
+    <result column="yks_channel_name" property="yksChannelName" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="status" property="status" jdbcType="INTEGER" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, short_code, english_name, chiness_name, yks_channel_code, yks_channel_name,create_time,status
+  </sql>
+
+  <select id="retrievelByYksChannelName" resultMap="BaseResultMap" parameterType="java.util.List">
+    select
+    <include refid="Base_Column_List" />
+    from logistics_channel
+    where yks_channel_name in
+    <foreach collection="list" index="index" item="item" open="(" close=")" separator=",">
+      #{item}
+    </foreach>
+  </select>
+
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from logistics_channel
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+
+  <select id="selectLogisticsChannel" resultMap="BaseResultMap" parameterType="com.yks.bigdata.dto.trackmore.LogisticsChannel" >
+    select
+    <include refid="Base_Column_List" />
+    from logistics_channel
+    where 1=1
+    <if test="shortCode != null and shortCode.length > 0">
+      and short_code = #{shortCode,jdbcType=VARCHAR}
+    </if>
+    <if test="status != null">
+      and status = #{status}
+    </if>
+    <if test="yksChannelCode != null and yksChannelCode.length > 0">
+      and yks_channel_code = #{yksChannelCode,jdbcType=VARCHAR}
+    </if>
+    <if test="englishName != null and englishName.length > 0">
+      and english_name   like CONCAT('%',#{englishName,jdbcType=VARCHAR},'%')
+    </if>
+    <if test="chinessName != null and chinessName.length > 0">
+      and chiness_name like CONCAT('%',#{chinessName,jdbcType=VARCHAR},'%')
+    </if>
+    <if test="yksChannelName != null and yksChannelName.length > 0">
+      and yks_channel_name  like CONCAT('%',#{yksChannelName,jdbcType=VARCHAR},'%')
+    </if>
+    <choose>
+      <when test="startTime != null and endTime != null and startTime.length > 0 and endTime.length > 0">
+        and create_time between #{startTime,jdbcType=VARCHAR} and #{endTime,jdbcType=VARCHAR}
+      </when>
+      <when test="startTime != null and startTime.length > 0">
+        and create_time > #{startTime,jdbcType=VARCHAR}
+      </when>
+      <when test="endTime != null and endTime.length > 0">
+        <![CDATA[and create_time < #{endTime,jdbcType=VARCHAR}]]>
+      </when>
+    </choose>
+  </select>
+
+  <select id="selectLogisticsChannelCode" resultMap="BaseResultMap" >
+    select DISTINCT short_code
+    from logistics_channel
+  </select>
+
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from logistics_channel
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.yks.bigdata.dto.trackmore.LogisticsChannel" >
+    insert into logistics_channel (id, short_code, english_name, 
+      chiness_name, yks_channel_code, yks_channel_name
+      )
+    values (#{id,jdbcType=INTEGER}, #{shortCode,jdbcType=VARCHAR}, #{englishName,jdbcType=VARCHAR}, 
+      #{chinessName,jdbcType=VARCHAR}, #{yksChannelCode,jdbcType=VARCHAR}, #{yksChannelName,jdbcType=VARCHAR}
+      )
+  </insert>
+  <insert id="insertBatch" parameterType="list" >
+    insert into logistics_channel (short_code, english_name,chiness_name, yks_channel_code,yks_channel_name)
+    values
+    <foreach collection="list" index="index" item="item" separator=",">
+      (#{item.shortCode,jdbcType=VARCHAR}, #{item.englishName,jdbcType=VARCHAR},#{item.chinessName,jdbcType=VARCHAR}, #{item.yksChannelCode,jdbcType=VARCHAR}, #{item.yksChannelName,jdbcType=VARCHAR})
+    </foreach>
+  </insert>
+  <insert id="insertSelective" parameterType="com.yks.bigdata.dto.trackmore.LogisticsChannel" >
+    insert into logistics_channel
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="shortCode != null" >
+        short_code,
+      </if>
+      <if test="englishName != null" >
+        english_name,
+      </if>
+      <if test="chinessName != null" >
+        chiness_name,
+      </if>
+      <if test="yksChannelCode != null" >
+        yks_channel_code,
+      </if>
+      <if test="yksChannelName != null" >
+        yks_channel_name,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="shortCode != null" >
+        #{shortCode,jdbcType=VARCHAR},
+      </if>
+      <if test="englishName != null" >
+        #{englishName,jdbcType=VARCHAR},
+      </if>
+      <if test="chinessName != null" >
+        #{chinessName,jdbcType=VARCHAR},
+      </if>
+      <if test="yksChannelCode != null" >
+        #{yksChannelCode,jdbcType=VARCHAR},
+      </if>
+      <if test="yksChannelName != null" >
+        #{yksChannelName,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.yks.bigdata.dto.trackmore.LogisticsChannel" >
+    update logistics_channel
+    <set >
+      <if test="shortCode != null" >
+        short_code = #{shortCode,jdbcType=VARCHAR},
+      </if>
+      <if test="englishName != null" >
+        english_name = #{englishName,jdbcType=VARCHAR},
+      </if>
+      <if test="chinessName != null" >
+        chiness_name = #{chinessName,jdbcType=VARCHAR},
+      </if>
+      <if test="yksChannelCode != null" >
+        yks_channel_code = #{yksChannelCode,jdbcType=VARCHAR},
+      </if>
+      <if test="yksChannelName != null" >
+        yks_channel_name = #{yksChannelName,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null" >
+        status = #{status,jdbcType=INTEGER},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.yks.bigdata.dto.trackmore.LogisticsChannel" >
+    update logistics_channel
+    set short_code = #{shortCode,jdbcType=VARCHAR},
+      english_name = #{englishName,jdbcType=VARCHAR},
+      chiness_name = #{chinessName,jdbcType=VARCHAR},
+      yks_channel_code = #{yksChannelCode,jdbcType=VARCHAR},
+      yks_channel_name = #{yksChannelName,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>

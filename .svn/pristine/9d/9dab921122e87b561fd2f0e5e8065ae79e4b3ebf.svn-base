@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yks.bigdata.dao.ErpEOrdersProcessMapper">
+    <resultMap id="BaseResultMap" type="com.yks.bigdata.dto.trackmore.ErpEOrdersProcess">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="erp_orders_id" jdbcType="BIGINT" property="erpOrdersId"/>
+        <result column="process_time" jdbcType="TIMESTAMP" property="processTime"/>
+        <result column="node_status" jdbcType="INTEGER" property="nodeStatus"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+    id, erp_orders_id, process_time, node_status, create_time
+  </sql>
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from erp_orders_process
+        where id = #{id,jdbcType=INTEGER}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from erp_orders_process
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+
+    <delete id="deleteByErpOrderId" parameterType="java.lang.Long">
+    delete from erp_orders_process
+    where erp_orders_id = #{erpOrdersId,jdbcType=BIGINT}
+  </delete>
+
+    <insert id="insert" parameterType="com.yks.bigdata.dto.trackmore.ErpEOrdersProcess">
+    insert into erp_orders_process ( erp_orders_id, process_time,
+      node_status, create_time)
+    values ( #{erpOrdersId,jdbcType=BIGINT}, #{processTime,jdbcType=TIMESTAMP},
+      #{nodeStatus,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP})
+  </insert>
+    <insert id="insertSelective" parameterType="com.yks.bigdata.dto.trackmore.ErpEOrdersProcess">
+        insert into erp_orders_process
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="erpOrdersId != null">
+                erp_orders_id,
+            </if>
+            <if test="processTime != null">
+                process_time,
+            </if>
+            <if test="nodeStatus != null">
+                node_status,
+            </if>
+            <if test="createTime != null">
+                create_time,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id,jdbcType=INTEGER},
+            </if>
+            <if test="erpOrdersId != null">
+                #{erpOrdersId,jdbcType=BIGINT},
+            </if>
+            <if test="processTime != null">
+                #{processTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="nodeStatus != null">
+                #{nodeStatus,jdbcType=INTEGER},
+            </if>
+            <if test="createTime != null">
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective" parameterType="com.yks.bigdata.dto.trackmore.ErpEOrdersProcess">
+        update erp_orders_process
+        <set>
+            <if test="erpOrdersId != null">
+                erp_orders_id = #{erpOrdersId,jdbcType=BIGINT},
+            </if>
+            <if test="processTime != null">
+                process_time = #{processTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="nodeStatus != null">
+                node_status = #{nodeStatus,jdbcType=INTEGER},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime,jdbcType=TIMESTAMP},
+            </if>
+        </set>
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+    <update id="updateByPrimaryKey" parameterType="com.yks.bigdata.dto.trackmore.ErpEOrdersProcess">
+    update erp_orders_process
+    set erp_orders_id = #{erpOrdersId,jdbcType=BIGINT},
+      process_time = #{processTime,jdbcType=TIMESTAMP},
+      node_status = #{nodeStatus,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+
+    <resultMap id="NodeResultMap" type="com.yks.bigdata.dto.report.NodeDto">
+        <result column="orders_out_time" jdbcType="TIMESTAMP" property="orders_out_time"/>
+        <result column="erp_orders_id" jdbcType="INTEGER" property="erp_orders_id"/>
+        <result column="process_time" jdbcType="TIMESTAMP" property="process_time"/>
+        <result column="node_status" jdbcType="INTEGER" property="node"/>
+        <result column="differDay" jdbcType="FLOAT" property="differDay"/>
+        <result column="keystr" jdbcType="VARCHAR" property="keystr"/>
+    </resultMap>
+
+    <resultMap id="ReportSourceResultMap" type="com.yks.bigdata.dto.report.ReportSource">
+        <result column="platform" jdbcType="VARCHAR" property="platform"/>
+        <result column="country" jdbcType="VARCHAR" property="country"/>
+        <result column="channel_name" jdbcType="VARCHAR" property="channel_name"/>
+        <result column="orders_out_time" jdbcType="TIMESTAMP" property="orders_out_time"/>
+        <result column="orders_out_time1" jdbcType="VARCHAR" property="orders_out_time1"/>
+        <result column="fee" jdbcType="DOUBLE" property="fee"/>
+        <result column="heavi" jdbcType="VARCHAR" property="heavi"/>
+        <result column="erp_orders_id" jdbcType="INTEGER" property="erp_orders_id"/>
+
+        <collection property="nodeDtos" column="erp_orders_id" javaType="ArrayList" select="selectNodes"/>
+    </resultMap>
+
+    <select id="selectReportSource" resultMap="ReportSourceResultMap">
+    select erp_orders_id,channel_name,orders_out_time,DATE_FORMAT(orders_out_time,'%Y-%m-%d') as orders_out_time1 from erp_orders
+    where channel_name = #{channel,jdbcType=VARCHAR} and DATE_FORMAT(orders_out_time,'%Y-%m-%d') = #{ordersutOutTime,jdbcType=VARCHAR}
+  </select>
+
+    <select id="selectNodesByChannel" resultMap="NodeResultMap">
+    select a.erp_orders_id,a.process_time,a.node_status,b.orders_out_time from erp_orders_process a
+    inner join erp_orders b on a.erp_orders_id = b.erp_orders_id
+    where b.channel_name = #{channel,jdbcType=VARCHAR} and DATE_FORMAT(b.orders_out_time,'%Y-%m-%d') = #{ordersutOutTime,jdbcType=VARCHAR}
+    AND a.node_status = #{status,jdbcType=INTEGER}
+  </select>
+
+    <select id="selectNodes" parameterType="java.lang.Long" resultMap="NodeResultMap">
+    select erp_orders_id,process_time,node_status from erp_orders_process
+    where erp_orders_id = #{erp_orders_id,jdbcType=INTEGER}
+  </select>
+
+    <select id="selectReportCountGyChannelAndOrderOutDate" resultMap="com.yks.bigdata.dao.Erp_ordersMapper.ReportResult"
+            parameterType="com.yks.bigdata.dto.trackmore.LogisticReport" useCache="true">
+        select a.channel_name,a.orders_out_time,a.paymentcount,b.shipcount,ROUND(b.shipcount/paymentcount,3) as
+        orderexecution_percent
+        ,ifnull(b.heavi,0)as heavi,ROUND(ifnull(b.heavi/b.shipcount,0),3) as avgheavi
+        ,ROUND(ifnull(b.fee,0),3)as fee,ROUND(ifnull(b.fee/b.shipcount,0),3) as avgprice
+        from(
+        select channel_name,count(1) as paymentcount,DATE_FORMAT(orders_out_time,'%Y-%m-%d') as orders_out_time
+        from erp_orders a
+        INNER JOIN logistics_channel b on a.channel_name = b.yks_channel_name and b.`status` = 1
+        where 1=1
+        <if test="platform != null and platform.length() > 0">
+            and platform in (${platform})
+        </if>
+        <if test="buyerCountry != null and buyerCountry.length() > 0">
+            and country in (${buyerCountry})
+        </if>
+        <if test="channelName != null and channelName.length() > 0">
+            and channel_name in (${channelName})
+        </if>
+        <choose>
+            <when test="startTime != null and endTime != null and startTime.length > 0 and endTime.length > 0">
+                and orders_out_time between #{startTime,jdbcType=VARCHAR} and #{endTime,jdbcType=VARCHAR}
+            </when>
+            <when test="startTime != null and startTime.length > 0">
+                and orders_out_time >= #{startTime,jdbcType=VARCHAR}
+            </when>
+            <when test="endTime != null and endTime.length > 0">
+                <![CDATA[and orders_out_time <= #{endTime,jdbcType=VARCHAR}]]>
+            </when>
+        </choose>
+        group by channel_name,DATE_FORMAT(orders_out_time,'%Y-%m-%d')
+        ) a
+        INNER JOIN (
+        select channel_name,count(1) as shipcount,sum(IFNULL(heavi,0)) as heavi,sum(IFNULL(fee,0)) as fee
+        ,DATE_FORMAT(orders_out_time,'%Y-%m-%d') as orders_out_time
+        from erp_orders
+        where orders_status = 5
+        <if test="platform != null and platform.length() > 0">
+            and platform in (${platform})
+        </if>
+        <if test="buyerCountry != null and buyerCountry.length() > 0">
+            and country in (${buyerCountry})
+        </if>
+        <if test="channelName != null and channelName.length() > 0">
+            and channel_name in (${channelName})
+        </if>
+        <choose>
+            <when test="startTime != null and endTime != null and startTime.length > 0 and endTime.length > 0">
+                and orders_out_time between #{startTime,jdbcType=VARCHAR} and #{endTime,jdbcType=VARCHAR}
+            </when>
+            <when test="startTime != null and startTime.length > 0">
+                and orders_out_time >= #{startTime,jdbcType=VARCHAR}
+            </when>
+            <when test="endTime != null and endTime.length > 0">
+                <![CDATA[and orders_out_time <= #{endTime,jdbcType=VARCHAR}]]>
+            </when>
+        </choose>
+        group by channel_name,DATE_FORMAT(orders_out_time,'%Y-%m-%d')
+        )b on a.channel_name = b.channel_name and a.orders_out_time = b.orders_out_time
+    </select>
+
+    <select id="selectNodeCount" resultType="java.lang.Integer">
+        select cnt from (
+          select CONCAT(a.channel_name, DATE_FORMAT(orders_out_time,'%Y-%m-%d')) as keystr,count(1) cnt
+          from erp_orders a
+          INNER JOIN erp_orders_process b on a.erp_orders_id = b.erp_orders_id
+          where b.node_status = #{status,jdbcType=INTEGER}
+          group by a.channel_name,DATE_FORMAT(orders_out_time,'%Y-%m-%d')
+        ) a where keystr = #{keystr,jdbcType=VARCHAR}
+    </select>
+    <select id="selectNodeCount1" resultMap="NodeResultMap">
+        select CONCAT(a.channel_name, DATE_FORMAT(orders_out_time,'%Y-%m-%d'),b.node_status) as keystr,count(1) as count from erp_orders a
+        INNER JOIN erp_orders_process b on a.erp_orders_id = b.erp_orders_id
+        group by a.channel_name,DATE_FORMAT(orders_out_time,'%Y-%m-%d'),b.node_status
+    </select>
+
+    <update id="updateProcessTimeByOrderIdAndNodeStatus" parameterType="java.util.List">
+        <foreach collection="list" item="item" index="index" separator=";">
+            UPDATE erp_orders_process
+                  SET  process_time = #{item.processTime,jdbcType=TIMESTAMP}
+            WHERE erp_orders_id = #{item.erpOrdersId,jdbcType=BIGINT} AND node_status = #{item.nodeStatus,jdbcType=INTEGER}
+        </foreach>
+    </update>
+    
+    <select id="selectCountByOrderIdAndStatus" resultType="java.lang.Integer">
+        SELECT count(1)
+        FROM erp_orders_process
+        WHERE erp_orders_id = #{erpOrdersId,jdbcType=BIGINT} AND node_status = #{nodeStatus,jdbcType=INTEGER}
+    </select>
+
+    <insert id="insertOrdersProcess" parameterType="java.util.List">
+        INSERT INTO
+          erp_orders_process(erp_orders_id,node_status,process_time,create_time)
+        VALUES
+          <foreach collection="list" item="item" index="index" separator=",">
+              (#{item.erpOrdersId,jdbcType=BIGINT},#{item.nodeStatus,jdbcType=INTEGER},#{item.processTime,jdbcType=TIMESTAMP},#{item.createTime,jdbcType=TIMESTAMP})
+          </foreach>
+    </insert>
+
+    <select id="selectOrdersProcess" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from erp_orders_process
+        where erp_orders_id = #{erpOrdersId,jdbcType=BIGINT}
+    </select>
+</mapper>
